@@ -2,6 +2,10 @@
 
 NodeWatch uses **one display implementation: native Python/Tkinter**. It is designed for Raspberry Pi, including a Pi 3B with a small SPI display (commonly 480×320). It **does not require Chromium**.
 
+## Tested Raspberry Pi display
+
+The native fullscreen Tkinter interface has been tested on a **Raspberry Pi 3 Model B (Pi 3B)** with a **3.5-inch OSOYOO SPI RPi Display V1.0**. Pi Mode telemetry, two-page rotation and automatic launch at desktop login were confirmed on this hardware. Other SPI screens may have different display requirements.
+
 ## Choose a monitoring mode
 
 | Mode | Main metrics | Second page | Setup |
