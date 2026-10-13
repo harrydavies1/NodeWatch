@@ -125,3 +125,7 @@ Expect `Mode: remote` and `Connected: True`. Page 1 now shows server CPU/RAM/dis
 - **No temperature reading:** the server may not expose supported sensors.
 
 To use **Pi Mode** again, clear both `REMOTE_AGENT_URL` and `REMOTE_AGENT_TOKEN` in the Pi's `.env` and restart NodeWatch. See [Pi Mode](PI_MODE.md).
+
+## Optional automatic startup on the Pi
+
+To launch the Tkinter dashboard automatically when the Pi desktop logs in, see [Optional desktop autostart](AUTOSTART.md). This is opt-in and works with Server Mode without changing the agent configuration.

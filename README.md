@@ -85,6 +85,34 @@ bash python-display/start-native.sh --windowed
 
 The native dashboard uses Tkinter and needs a graphical session and an appropriate screen driver. It **does not** require Chromium and does not render directly from a Linux text-only console.
 
+## Optional: launch NodeWatch when the Raspberry Pi desktop starts
+
+**Autostart is opt-in and disabled by default.** NodeWatch also works perfectly well when launched manually. This method is for Raspberry Pi OS graphical desktop sessions that support XDG autostart (including LXDE); it starts **after you log in to the desktop**, not as a headless system service.
+
+On the Pi, from the NodeWatch project folder:
+
+```bash
+cd ~/pi-server-dashboard
+bash python-display/autostart.sh enable
+```
+
+The command creates a `~/.config/autostart/nodewatch.desktop` entry, unless one already exists; **it does not overwrite an existing NodeWatch startup entry**. The launcher waits a few seconds for the desktop to settle before opening Tkinter fullscreen. No `sudo` is needed.
+
+To inspect or disable it later:
+
+```bash
+bash python-display/autostart.sh status
+bash python-display/autostart.sh disable
+```
+
+Disabling preserves the previous entry outside the desktop's autostart folder, so you can run `enable` again to restore it. It affects **future desktop logins only**; it will not close the currently running dashboard.
+
+For NodeWatch to appear **without any manual login after power-on**, configure desktop auto-login separately on your Pi. Otherwise, NodeWatch starts when you log into the desktop. **A graphical desktop and its display driver must already be working.** This is not a fix for missing graphical sessions.
+
+To troubleshoot an enabled startup entry, check `bash python-display/autostart.sh status` and the log at `~/nodewatch-autostart.log`. If you already have a working autostart configuration, you can leave it unchanged.
+
+[Full optional autostart guide →](docs/AUTOSTART.md)
+
 ## What the dashboard shows
 
 | Screen | Pi Mode | Server Mode |
@@ -125,6 +153,7 @@ For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERV
 
 - `python-display/native_dashboard.py` — two-page Tkinter dashboard
 - `python-display/start-native.sh` — native display launcher
+- `python-display/autostart.sh` — optional desktop startup enable/disable helper
 - `dashboard.py` — **telemetry collection only** for Pi Mode and Server Mode (no browser server)
 - `metrics.py` — psutil CPU/RAM/disk/temperature/uptime/network snapshot
 - `agent.py` and `start-agent.sh` — optional Ubuntu Server telemetry agent

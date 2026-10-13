@@ -47,6 +47,10 @@ bash python-display/start-native.sh --windowed
 
 Tkinter requires a functioning X11 or other Tk-compatible graphical session and display driver; it cannot open on a bare text-only console.
 
+## Optional autostart at desktop login
+
+If you want NodeWatch to open when the Pi graphical desktop logs in, run `bash python-display/autostart.sh enable` from the repository. To inspect or disable it, run `bash python-display/autostart.sh status` or `bash python-display/autostart.sh disable`. This is **off by default**, doesn't replace an existing startup entry, and doesn't change the Pi's graphical configuration. See [the optional autostart guide](../docs/AUTOSTART.md).
+
 ## Controls and settings
 
 - Stats refresh every 5 seconds; pages alternate every 12 seconds by default.

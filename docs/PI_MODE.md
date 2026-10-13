@@ -60,3 +60,7 @@ Expected mode: `pi`. CPU and IP are read directly from the Pi.
 Page 1 shows CPU, RAM, disk, temperature and uptime. Page 2 shows Pi networking, host information and any optional TCP port checks. The status reads **PI ONLY**. Network counters are total bytes since boot, not current transfer rates.
 
 To switch to remote monitoring when an Ubuntu Server becomes available, follow [Method 2 — Server Mode](SERVER_MODE.md). Your Pi's metrics remain visible on the second page.
+
+## Optional automatic startup
+
+If you want NodeWatch to launch after the Pi desktop logs in, see [Optional desktop autostart](AUTOSTART.md). It is disabled by default and works in both monitoring modes.
