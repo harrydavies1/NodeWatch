@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0e19">
+  <meta name="color-scheme" content="dark">
+  <title>NodeWatch — Server Info Screen</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="logo">N<span>W</span></div><div><div class="brandname">NODEWATCH <span> / SERVER MONITOR</span></div><div class="brand-sub">RASPBERRY PI INFO SCREEN</div></div></div>
+      <div class="topright"><span id="last-updated" class="synced">CONNECTING…</span><div class="clock-wrap"><strong id="clock">--:--</strong><small id="date">---</small></div></div>
+    </header>
+
+    <main>
+      <section class="screen active" id="page-overview" aria-label="Page one: Overview">
+        <div class="section-head"><div><span class="eyebrow"><span class="tiny-line"></span> PAGE 01 / 02 · OVERVIEW</span><h1>System <em>Overview.</em></h1><p id="overview-subtitle">Live telemetry from your monitoring host.</p></div><div class="head-chip"><span class="pulse"></span><span id="source-badge">LOADING</span></div></div>
+        <div class="overview-grid">
+          <article class="panel cpu-panel">
+            <div class="panel-heading"><div><span class="kicker">PROCESSOR</span><h2>CPU Usage</h2></div><span class="corner-mark">01</span></div>
+            <div class="gauge-wrap"><div class="gauge" id="cpu-gauge"><div class="gauge-core"><span class="gauge-number" id="cpu-value">--<small>%</small></span><span class="gauge-label">CURRENT LOAD</span></div></div></div>
+            <div class="cpu-bottom"><div><span class="field-label">CORES</span><strong id="cpu-cores">—</strong></div><div><span class="field-label">UPTIME</span><strong id="uptime">—</strong></div></div>
+          </article>
+          <article class="panel metric-panel memory"><div class="panel-heading"><div><span class="kicker">CAPACITY</span><h2>Memory</h2></div><svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="7" width="16" height="10" rx="2"/><path d="M8 7V4m4 3V4m4 3V4M8 20v-3m4 3v-3m4 3v-3M4 11H2m2 3H2m20-3h-2m2 3h-2"/></svg></div><div class="stat"><strong id="mem-percent">--<small>%</small></strong><span class="metric-note" id="mem-used">— / —</span></div><div class="track"><div id="mem-bar" class="fill"></div></div><span class="metric-footer">RAM UTILISATION</span></article>
+          <article class="panel metric-panel storage"><div class="panel-heading"><div><span class="kicker">STORAGE</span><h2>Disk Space</h2></div><svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h18m-5 4h2"/></svg></div><div class="stat"><strong id="disk-percent">--<small>%</small></strong><span class="metric-note" id="disk-used">— / —</span></div><div class="track"><div id="disk-bar" class="fill"></div></div><span class="metric-footer">ROOT FILESYSTEM</span></article>
+          <article class="panel metric-panel temperature"><div class="panel-heading"><div><span class="kicker">THERMALS</span><h2>Temperature</h2></div><svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0Z"/><path d="M12 10v7"/></svg></div><div class="stat"><strong id="temp-value">--<small>°C</small></strong><span class="metric-note" id="temp-note">CPU SENSOR</span></div><div class="mini-signal"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="metric-footer">LIVE READING</span></article>
+          <article class="panel identity"><span class="kicker">MONITORED NODE</span><div class="machine-mark">◈</div><h2 id="node-name">—</h2><div class="host-details"><div><span>HOST</span><b id="host-name">—</b></div><div><span>IP</span><b id="host-ip">—</b></div></div></article>
+        </div>
+      </section>
+
+      <section class="screen" id="page-network" aria-label="Page two: Network and services" hidden>
+        <div class="section-head"><div><span class="eyebrow"><span class="tiny-line"></span> PAGE 02 / 02 · DIAGNOSTICS</span><h1>Network <em>& Services.</em></h1><p>Connectivity, service checks, and Raspberry Pi health.</p></div><div class="head-chip"><span class="pulse"></span> LIVE STATUS</div></div>
+        <div class="details-grid">
+          <article class="panel connection"><div class="panel-heading"><div><span class="kicker">SERVER LINK</span><h2>Connection</h2></div><span class="corner-mark">02</span></div><div class="conn-main"><span id="connection-dot" class="conn-icon">↗</span><div><strong id="connection-status">Checking…</strong><span id="connection-hint">Waiting for telemetry</span></div></div><div class="info-rows"><div><span>Server</span><strong id="server-name">—</strong></div><div><span>Response time</span><strong id="server-latency">—</strong></div><div><span>Source</span><strong id="server-source">—</strong></div></div></article>
+          <article class="panel services"><div class="panel-heading"><div><span class="kicker">PORT CHECKS</span><h2>Services</h2></div><span class="corner-mark">↗</span></div><div id="service-list" class="service-list"><div class="empty-state">No services configured yet.</div></div></article>
+          <article class="panel pi-host"><div class="panel-heading"><div><span class="kicker">LOCAL CONTROLLER</span><h2>Raspberry Pi</h2></div><div class="pi-dot">●</div></div><div class="pi-grid"><div><span>HOSTNAME</span><strong id="pi-hostname">—</strong></div><div><span>LOCAL IP</span><strong id="pi-ip">—</strong></div><div><span>CPU</span><strong id="pi-cpu">—</strong></div><div><span>MEMORY</span><strong id="pi-memory">—</strong></div><div><span>TEMPERATURE</span><strong id="pi-temp">—</strong></div><div><span>UPTIME</span><strong id="pi-uptime">—</strong></div></div></article>
+          <article class="panel traffic"><span class="kicker">CUMULATIVE LOCAL TRAFFIC</span><h2>Network I/O</h2><div class="traffic-grid"><div><span class="traffic-symbol down">↓</span><span>RECEIVED</span><strong id="net-recv">—</strong></div><div><span class="traffic-symbol up">↑</span><span>SENT</span><strong id="net-sent">—</strong></div></div><small>Since local Pi boot · totals, not speed</small></article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><div class="footer-left"><span class="footer-signal">◆</span> NODEWATCH <span class="footer-sep">·</span> TWO-PAGE INFO SCREEN</div><nav class="page-controls" aria-label="Dashboard pages"><button type="button" class="nav-arrow" id="prev" aria-label="Previous page">‹</button><button type="button" class="page-dot active" data-page="0" aria-label="Go to page 1" aria-current="page"></button><button type="button" class="page-dot" data-page="1" aria-label="Go to page 2"></button><button type="button" class="nav-arrow" id="next" aria-label="Next page">›</button><span class="page-count" id="page-count">01 / 02</span></nav><div class="footer-right">AUTO ROTATE <span id="rotation-speed">12s</span> <span class="footer-sep">/</span> REFRESH <span id="refresh-speed">5s</span></div></footer>
+  </div>
+</body>
+</html>
