@@ -1,159 +1,123 @@
-# NodeWatch — Raspberry Pi / Ubuntu Server dashboard
+# NodeWatch — Raspberry Pi and Ubuntu Server monitoring
 
-**A lightweight, two-page Linux server monitoring dashboard for Ubuntu Server and other Linux distributions. Designed for Raspberry Pi devices, including an experimental native Python interface for a Pi 3B with a 3.5-inch SPI display.**
+**NodeWatch is a lightweight, two-page system stats dashboard for Raspberry Pi.** Run it in **Pi Mode** to monitor the Raspberry Pi itself, or use **Server Mode** to monitor an Ubuntu Server while still displaying the Pi's health.
 
-NodeWatch offers both a browser dashboard built with Python, HTML, CSS and JavaScript, and a separate native Python/Tkinter dashboard that does not require Chromium. It uses `psutil` on Linux (including Raspberry Pi OS and Ubuntu Server). There is no cloud account or paid service requirement.
+Choose either a native Python/Tkinter display (**no Chromium needed**) or a browser-based HTML/CSS/JavaScript display. Both interfaces use the same Python telemetry collector and configuration.
 
-> **Project status:** functional starter implementation. Its two-page layout is a default design, **not a claim to reproduce any previously discussed/custom screen exactly**. Share your prior files or screenshots to match an existing design. Hardware-specific GPIO/SPI displays may require their own drivers.
+## Choose your monitoring method
 
-## Choose a display version
+| Method | Main system being monitored | Additional machine needed? | Full setup |
+| --- | --- | --- | --- |
+| **1. Pi Mode** | This Raspberry Pi: CPU, RAM, disk, temperature, uptime and network | **No** | [Pi Mode instructions](docs/PI_MODE.md) |
+| **2. Server Mode** | Remote Ubuntu Server: CPU, RAM, disk, temperature and uptime; also shows the local Pi's stats | **Yes — an Ubuntu/Linux server running the agent** | [Server Mode instructions](docs/SERVER_MODE.md) |
 
-**Both versions are available on the `main` branch**, sharing the same data collector, optional Ubuntu Server agent and `.env` configuration.
+**Mode is selected through the Pi's `.env` file**, using `REMOTE_AGENT_URL`. There is no remote agent requirement in Pi Mode, and you don't need to run both methods.
 
-| Version | Recommended when | Launch |
-| --- | --- | --- |
-| [Browser display](browser/README.md) | Chromium or another browser works | `bash browser/start-web.sh` |
-| [Native Python display](python-display/README.md) | Raspberry Pi 3B or small SPI screen with working desktop, but Chromium is unavailable | `bash python-display/start-native.sh` |
+### Method 1 — Pi Mode: just the Raspberry Pi
 
-The native Python version uses **Tkinter** at a 480×320-style layout and needs a functioning graphical desktop and SPI display driver. It is **not** a bare-framebuffer or terminal application. [Detailed comparison and quick setup](DISPLAY_VERSIONS.md).
-
-## Two pages
-
-| Screen | Displays |
-| --- | --- |
-| **1 — System Overview** | Ubuntu Server (or Pi-only) CPU usage, memory, root-disk space, available temperature sensor, hostname, IP, CPU cores, and uptime |
-| **2 — Network & Services** | Ubuntu Server agent connection, configurable TCP port checks, Raspberry Pi hostname, IP, CPU, RAM, temperature and uptime, cumulative Pi network traffic |
-
-Pages change automatically every **12 seconds** and data refreshes every **5 seconds** (both configurable). You can switch pages with the visible arrows/dots or your keyboard's left/right arrows.
-
-## How it works
-
-```text
- Ubuntu Server (runs agent.py)                 Raspberry Pi (runs dashboard.py)
-  - CPU, RAM, disk, uptime                       - Kiosk web interface
-  - Optional CPU temperature       private       - Pi health/network info
-  - GET /api/metrics  ----------------------->    - Pulls Ubuntu stats every 5 sec
-                       authenticated read-only    - Monitors selected TCP services
-                                      HDMI / touchscreen / desktop browser
-```
-
-The **Ubuntu Server machine does not require a desktop environment**. The Pi needs a graphical desktop for the attached display; only the browser version requires a graphical browser. If your Pi is also running Ubuntu Server headlessly, it can run the Python dashboard service but needs a GUI/browser on the Pi for an attached display (or open the page remotely by changing `DASHBOARD_HOST` and using an appropriate firewall). HDMI screens with Raspberry Pi OS Desktop are the simplest kiosk setup.
-
-## Prerequisites
-
-- Ubuntu Server 22.04 LTS, 24.04 LTS or other recent supported Linux distributions for the **monitored server** (a normal Python 3 environment; tested code here, not tested on every hardware/OS combination).
-- Raspberry Pi running Raspberry Pi OS with a desktop for a locally attached HDMI monitor, or Ubuntu with a graphical desktop.
-- Python 3 with `venv` and `pip` on both computers.
-- Network connectivity between the two machines; **never expose the agent directly to the public internet**.
-
-## Step 1 — Install the read-only agent on Ubuntu Server
-
-On **Ubuntu Server**:
+Install NodeWatch on the Pi (or use your existing checkout):
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip
-# After publishing your repository, use its URL:
-git clone https://github.com/harrydavies1/pi-server-dashboard.git
+sudo apt install -y git python3 python3-pip python3-venv python3-tk
+# Clone only if not already installed; a private repo needs authorized SSH access:
+git clone git@github.com:harrydavies1/pi-server-dashboard.git
 cd pi-server-dashboard
-python3 -m venv .venv
+python3 -m venv --system-site-packages .venv
 .venv/bin/pip install -r requirements.txt
-cp .env.example .env
-python3 -c 'import secrets; print(secrets.token_urlsafe(36))'
+cp -n .env.example .env
 ```
 
-Edit **the Ubuntu machine's** `.env` (`nano .env`) and set:
+Edit the Pi's `.env`:
 
 ```ini
-AGENT_TOKEN=PASTE_A_LONG_RANDOM_TOKEN_HERE
-AGENT_HOST=0.0.0.0
-AGENT_PORT=8766
-```
-
-Then start with `./start-agent.sh`. Test locally:
-
-```bash
-curl -H 'Authorization: Bearer PASTE_A_LONG_RANDOM_TOKEN_HERE' http://127.0.0.1:8766/api/metrics
-```
-
-Expect JSON metrics. The agent returns `401` unless the token matches. To make it survive a reboot, copy `deploy/server-agent.service.example` to `/etc/systemd/system/server-agent.service`, change `YOUR_USERNAME` and paths, then:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now server-agent
-sudo systemctl status server-agent
-```
-
-**Firewall:** restrict TCP `8766` to the Pi IP or to an authenticated VPN interface. For example, with UFW and a known Pi address:
-
-```bash
-sudo ufw allow from PI_LAN_IP to any port 8766 proto tcp
-```
-
-Do not blindly enable a firewall over SSH without allowing SSH first. For traffic outside your trusted LAN, use WireGuard/Tailscale and preferably TLS; the bearer token is not encrypted by HTTP alone.
-
-## Step 2 — Install the dashboard on the Raspberry Pi (browser version)
-
-On the **Raspberry Pi**:
-
-```bash
-sudo apt update
-sudo apt install -y git python3 python3-venv python3-pip
-# After publishing your repository, use its URL:
-git clone https://github.com/harrydavies1/pi-server-dashboard.git
-cd pi-server-dashboard
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-cp .env.example .env
-nano .env
-```
-
-Set **the Pi's** `.env` to point at Ubuntu Server:
-
-```ini
-DASHBOARD_HOST=127.0.0.1
-DASHBOARD_PORT=8765
-SERVER_NAME="Ubuntu Home Server"
-REMOTE_AGENT_URL=http://YOUR_UBUNTU_SERVER_LAN_IP:8766
-REMOTE_AGENT_TOKEN=PASTE_THE_SAME_LONG_RANDOM_TOKEN_HERE
+SERVER_NAME="Raspberry Pi"
+REMOTE_AGENT_URL=
+REMOTE_AGENT_TOKEN=
 REFRESH_SECONDS=5
 ROTATE_SECONDS=12
-SERVICES_JSON='[{"name":"SSH","host":"YOUR_UBUNTU_SERVER_LAN_IP","port":22}]'
+SERVICES_JSON='[]'
 ```
 
-Replace all placeholders with real local or VPN IP addresses and **the same agent token**. Set `SERVICES_JSON='[]'` if you don't want TCP checks. Note: service checks show whether a TCP port accepts connections, not whether the service is fully healthy.
+**Leave `REMOTE_AGENT_URL` empty.** This selects Pi Mode, reads real Pi telemetry via `psutil` and shows **PI ONLY** / **LOCAL PI MODE** in the interface. No Ubuntu Server or token needed.
 
-Run:
+Start the native Python display on the Pi's graphical desktop:
 
 ```bash
-./start.sh
+bash python-display/start-native.sh
 ```
 
-Open `http://127.0.0.1:8765/` on the Pi. You should now see the live two-page screen. For a Pi with a desktop, install Chromium if needed and run:
+Or start the browser version instead:
 
 ```bash
-./kiosk-start.sh
+bash browser/start-web.sh
 ```
 
-On some distributions the Chromium command/package is `chromium-browser` instead of `chromium`; adjust the script if needed. To keep the dashboard service running after reboot, use `deploy/pi-dashboard.service.example` as above; launch the browser in the **logged-in graphical desktop session** (not in the headless `systemd` service).
+The browser version is available at `http://127.0.0.1:8765/` on the Pi. See [Pi Mode — complete guide](docs/PI_MODE.md) for verification and display options.
 
-## Native Python version: no browser needed
+### Method 2 — Server Mode: Ubuntu Server + Raspberry Pi
 
-After installing `python3-tk` and setting up a Python virtual environment that can access system Tkinter, launch `bash python-display/start-native.sh` **from the Pi desktop**. See [the native display setup guide](python-display/README.md). Chromium is not required.
+Install the read-only metrics agent on your **Ubuntu Server** and configure a strong `AGENT_TOKEN` plus an agent listener reachable **only from your trusted Pi/LAN/VPN**. Detailed installation, token generation, firewall guidance and agent startup are in [Server Mode — complete guide](docs/SERVER_MODE.md).
 
-## Pi-only quick test (no remote Ubuntu Server required)
+Then edit `.env` **on the Raspberry Pi**:
 
-If `REMOTE_AGENT_URL` is empty, the dashboard deliberately shows **real Raspberry Pi telemetry** and labels it **Local Pi Mode** instead of pretending it came from the server. Set a remote URL later to switch to Ubuntu Server metrics.
+```ini
+SERVER_NAME="Ubuntu Home Server"
+REMOTE_AGENT_URL=http://YOUR_UBUNTU_SERVER_LAN_IP:8766
+REMOTE_AGENT_TOKEN=PASTE_THE_SAME_AGENT_TOKEN_HERE
+REFRESH_SECONDS=5
+ROTATE_SECONDS=12
+SERVICES_JSON='[]'
+```
 
-## Customize
+**A non-empty `REMOTE_AGENT_URL` selects Server Mode.** Start either display using the same native/browser commands as Pi Mode. Page 1 now shows the Ubuntu Server's metrics; page 2 continues to show the Raspberry Pi's own health, network totals and optional port checks.
 
-- **Layout:** `static/index.html`
-- **Styling/responsiveness:** `static/style.css`
-- **Auto-rotation/page logic:** `static/app.js`
-- **Collection and networking:** `dashboard.py`, `agent.py`, `metrics.py`
-- **Settings and optional service checks:** `.env` (never commit this file)
+The Ubuntu Server does **not** need a graphical desktop. If the remote agent is unreachable, the dashboard shows **OFFLINE**, not fabricated server readings.
 
-The app doesn't need root permissions for basic telemetry; CPU temperature availability depends on exposed sensors, and inaccessible sensors display a dash, not fake readings. Pi network totals are **cumulative since boot** rather than live per-second throughput. Service checks are TCP reachability probes, not Docker/container state inspection.
+To return to Pi Mode, clear `REMOTE_AGENT_URL` on the Pi and restart NodeWatch.
+
+## Choose your display version
+
+Monitoring **mode** (Pi or Server) and display **version** (native or browser) are independent choices.
+
+| Display | Best for | Launch on Pi |
+| --- | --- | --- |
+| [Native Python](python-display/README.md) | Raspberry Pi 3B, 3.5-inch SPI display, no Chromium | `bash python-display/start-native.sh` |
+| [Browser](browser/README.md) | Browser-capable Pi, monitor or another supported screen | `bash browser/start-web.sh` |
+
+The native version uses Tkinter with a 480×320-style layout and needs a working graphical desktop/display driver; it is not a direct framebuffer or console app. More detail: [Display version comparison](DISPLAY_VERSIONS.md).
+
+## What the two pages show
+
+| Page | Pi Mode | Server Mode |
+| --- | --- | --- |
+| **1 — System Overview** | Raspberry Pi CPU, RAM, root disk, temperature, hostname, uptime | Ubuntu Server CPU, RAM, root disk, temperature, hostname, uptime |
+| **2 — Network & Services** | Pi IP/hostname/CPU/RAM/uptime, cumulative network totals, optional TCP checks | Ubuntu agent connection and optional TCP checks **plus the same local Pi health/network information** |
+
+Data refreshes every **5 seconds** and pages auto-rotate every **12 seconds** by default. Adjust `REFRESH_SECONDS` and `ROTATE_SECONDS` in `.env`. On the native touchscreen, tap left or right to change pages; keyboard left/right arrows also work.
+
+Telemetry comes from `psutil` on the monitored host. The local Pi network counters are **cumulative since boot**, not live transfer speeds. A missing temperature sensor displays `--` / a dash; TCP port checks only test reachability.
+
+## Verify the active monitoring mode
+
+From the Pi's project directory:
+
+```bash
+.venv/bin/python -c 'from dashboard import collect_state; s=collect_state(); print("Mode:", s["server"]["mode"]); print("Remote connected:", s["server"]["connected"]); print("Pi CPU:", s["pi"]["cpu_percent"])'
+```
+
+- Pi Mode: `Mode: pi`; remote connection is not required.
+- Server Mode: `Mode: remote`; `Remote connected: True` means the agent responded.
+
+## Project files
+
+- `dashboard.py` — web API server and shared `collect_state()` for both interfaces.
+- `metrics.py` — local CPU, memory, disk, temperature, uptime and network telemetry.
+- `agent.py` — optional authenticated read-only agent for a separate Ubuntu Server.
+- `python-display/` — native Python/Tkinter two-page interface.
+- `browser/`, `static/` — browser launcher and HTML/CSS/JavaScript interface.
+- `.env.example` — configuration template; copy it to `.env`.
+- `deploy/` — optional example systemd service files.
 
 ## Tests
 
@@ -161,18 +125,10 @@ The app doesn't need root permissions for basic telemetry; CPU temperature avail
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-GitHub Actions runs the same checks on pushes and pull requests.
+The project also runs tests using GitHub Actions.
 
-## Repository privacy and security
+## Security and privacy
 
-Create the GitHub repository as **private** initially. The `.gitignore` excludes `.env`, virtual environments and caches. `.env.example` only contains placeholders. Do not commit real API keys, passwords, VPN keys, bearer tokens or internal addresses you want kept secret. Prefer secure transport (VPN / HTTPS); restrict both the agent listener and firewall to trusted devices. The dashboard binds to Pi localhost by default.
-
-## Troubleshooting
-
-- **SERVER OFFLINE:** verify `REMOTE_AGENT_URL`/`REMOTE_AGENT_TOKEN`, `systemctl status server-agent`, and firewall/network connectivity.
-- **No temperature:** your server/VM may not expose supported sensors.
-- **No services listed:** edit `SERVICES_JSON` in the Pi `.env` and restart the dashboard.
-- **Black screen / browser missing:** check the graphical desktop, HDMI display output, and Chromium installation; Ubuntu Server by itself is normally headless.
-- **Port already in use:** change `AGENT_PORT` or `DASHBOARD_PORT` in the relevant machine's `.env`.
+Do not commit your actual `.env`, agent tokens, passwords or internal credentials. The GitHub repository may be private; cloning requires authorized access. The web dashboard binds to `127.0.0.1` by default. Restrict the optional Server Mode agent to your trusted LAN/VPN and use firewall rules allowing only the Pi; do not expose the unencrypted agent HTTP endpoint to the public internet. For networks you don't fully trust, use HTTPS or an encrypted VPN/tunnel.
 
 License: MIT (see `LICENSE`).
