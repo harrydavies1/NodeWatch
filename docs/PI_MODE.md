@@ -2,6 +2,8 @@
 
 Pi Mode displays **live stats from the Raspberry Pi running NodeWatch**. You do not need a separate server, an agent, or an agent token.
 
+**Tested hardware:** Raspberry Pi 3 Model B (Pi 3B) with a **3.5-inch OSOYOO SPI RPi Display V1.0**. The Tkinter dashboard was confirmed working fullscreen in Pi Mode, with both pages rotating, on this setup.
+
 ## 1. Install NodeWatch on the Pi
 
 ```bash
