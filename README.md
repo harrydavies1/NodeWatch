@@ -1,6 +1,6 @@
 # NodeWatch — Raspberry Pi / Ubuntu Server dashboard
 
-**A two-page, auto-rotating info screen for a Raspberry Pi, with live Linux telemetry from an Ubuntu Server machine.**
+**A lightweight, two-page server monitoring dashboard for Ubuntu Server, tested on a Raspberry Pi 3B with a 3.5-inch SPI display. Shows live system stats, network activity, temperatures, and service status in a compact interface. Could possibly work on other distros (debian, arch, raspian, etc.).**
 
 NodeWatch is a web-based, dark-mode 800×480-style dashboard built with Python, HTML, CSS and vanilla JavaScript. It uses `psutil` on Linux (including Raspberry Pi OS and Ubuntu Server). There is no cloud account or paid service requirement.
 
