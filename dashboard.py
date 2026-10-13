@@ -1,11 +1,10 @@
-"""Two-page Pi dashboard web server. Standard-library HTTP; psutil for telemetry."""
+"""Native NodeWatch telemetry collector for local Pi and remote server modes."""
 
 import json
 import os
 import socket
 import time
 from datetime import datetime, timezone
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib import error, parse, request
 
@@ -118,44 +117,3 @@ def collect_state():
         },
     }
 
-
-class Handler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(ROOT / "static"), **kwargs)
-
-    def do_GET(self):
-        if parse.urlsplit(self.path).path == "/api/state":
-            try:
-                payload = json.dumps(collect_state()).encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json; charset=utf-8")
-            except Exception:
-                payload = b'{"error":"Unable to collect telemetry"}'
-                self.send_response(503)
-                self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Content-Length", str(len(payload)))
-            self.end_headers()
-            self.wfile.write(payload)
-            return
-        if self.path == "/":
-            self.path = "/index.html"
-        super().do_GET()
-
-
-def main():
-    host = os.environ.get("DASHBOARD_HOST", "127.0.0.1")
-    port = env_int("DASHBOARD_PORT", 8765, 1, 65535)
-    httpd = ThreadingHTTPServer((host, port), Handler)
-    print(f"Dashboard at http://{host}:{port} (Ctrl+C to stop)", flush=True)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        httpd.server_close()
-
-
-if __name__ == "__main__":
-    main()
