@@ -1,10 +1,21 @@
 # NodeWatch — Raspberry Pi / Ubuntu Server dashboard
 
-**A lightweight, two-page server monitoring dashboard for Ubuntu Server, tested on a Raspberry Pi 3B with a 3.5-inch SPI display. Shows live system stats, network activity, temperatures, and service status in a compact interface. Could possibly work on other distros (debian, arch, raspian, etc.).**
+**A lightweight, two-page Linux server monitoring dashboard for Ubuntu Server and other Linux distributions. Designed for Raspberry Pi devices, including an experimental native Python interface for a Pi 3B with a 3.5-inch SPI display.**
 
-NodeWatch is a web-based, dark-mode 800×480-style dashboard built with Python, HTML, CSS and vanilla JavaScript. It uses `psutil` on Linux (including Raspberry Pi OS and Ubuntu Server). There is no cloud account or paid service requirement.
+NodeWatch offers both a browser dashboard built with Python, HTML, CSS and JavaScript, and a separate native Python/Tkinter dashboard that does not require Chromium. It uses `psutil` on Linux (including Raspberry Pi OS and Ubuntu Server). There is no cloud account or paid service requirement.
 
 > **Project status:** functional starter implementation. Its two-page layout is a default design, **not a claim to reproduce any previously discussed/custom screen exactly**. Share your prior files or screenshots to match an existing design. Hardware-specific GPIO/SPI displays may require their own drivers.
+
+## Choose a display version
+
+**Both versions are available on the `main` branch**, sharing the same data collector, optional Ubuntu Server agent and `.env` configuration.
+
+| Version | Recommended when | Launch |
+| --- | --- | --- |
+| [Browser display](browser/README.md) | Chromium or another browser works | `bash browser/start-web.sh` |
+| [Native Python display](python-display/README.md) | Raspberry Pi 3B or small SPI screen with working desktop, but Chromium is unavailable | `bash python-display/start-native.sh` |
+
+The native Python version uses **Tkinter** at a 480×320-style layout and needs a functioning graphical desktop and SPI display driver. It is **not** a bare-framebuffer or terminal application. [Detailed comparison and quick setup](DISPLAY_VERSIONS.md).
 
 ## Two pages
 
@@ -26,7 +37,7 @@ Pages change automatically every **12 seconds** and data refreshes every **5 sec
                                       HDMI / touchscreen / desktop browser
 ```
 
-The **Ubuntu Server machine does not require a desktop environment**. Only the device used to display the web page needs a graphical browser. If your Pi is also running Ubuntu Server headlessly, it can run the Python dashboard service but needs a GUI/browser on the Pi for an attached display (or open the page remotely by changing `DASHBOARD_HOST` and using an appropriate firewall). HDMI screens with Raspberry Pi OS Desktop are the simplest kiosk setup.
+The **Ubuntu Server machine does not require a desktop environment**. The Pi needs a graphical desktop for the attached display; only the browser version requires a graphical browser. If your Pi is also running Ubuntu Server headlessly, it can run the Python dashboard service but needs a GUI/browser on the Pi for an attached display (or open the page remotely by changing `DASHBOARD_HOST` and using an appropriate firewall). HDMI screens with Raspberry Pi OS Desktop are the simplest kiosk setup.
 
 ## Prerequisites
 
@@ -81,7 +92,7 @@ sudo ufw allow from PI_LAN_IP to any port 8766 proto tcp
 
 Do not blindly enable a firewall over SSH without allowing SSH first. For traffic outside your trusted LAN, use WireGuard/Tailscale and preferably TLS; the bearer token is not encrypted by HTTP alone.
 
-## Step 2 — Install the dashboard on the Raspberry Pi
+## Step 2 — Install the dashboard on the Raspberry Pi (browser version)
 
 On the **Raspberry Pi**:
 
@@ -125,6 +136,10 @@ Open `http://127.0.0.1:8765/` on the Pi. You should now see the live two-page sc
 ```
 
 On some distributions the Chromium command/package is `chromium-browser` instead of `chromium`; adjust the script if needed. To keep the dashboard service running after reboot, use `deploy/pi-dashboard.service.example` as above; launch the browser in the **logged-in graphical desktop session** (not in the headless `systemd` service).
+
+## Native Python version: no browser needed
+
+After installing `python3-tk` and setting up a Python virtual environment that can access system Tkinter, launch `bash python-display/start-native.sh` **from the Pi desktop**. See [the native display setup guide](python-display/README.md). Chromium is not required.
 
 ## Pi-only quick test (no remote Ubuntu Server required)
 
