@@ -33,7 +33,7 @@ The Ubuntu Server does not need a desktop or Tkinter: `agent.py` runs headlessly
 Start the agent on the server:
 
 ```bash
-./start-agent.sh
+bash start-agent.sh
 ```
 
 To check it from another Ubuntu Server terminal:
