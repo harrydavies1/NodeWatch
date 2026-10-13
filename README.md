@@ -2,6 +2,13 @@
 
 **NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two automatically rotating pages of live stats and **does not need a web browser**.
 
+## Hardware used
+
+- **Raspberry Pi display:** Raspberry Pi 3 Model B (Pi 3B) with a **3.5-inch OSOYOO SPI RPi Display V1.0**.
+- **Server hardware:** A basic **Dell OptiPlex** desktop running **Ubuntu Server**.
+
+**Testing status:** The native Tkinter dashboard was confirmed working fullscreen on this Pi and OSOYOO screen in **Pi Mode**, including the two rotating pages and automatic launch at desktop login. The Ubuntu Server/OptiPlex is the server setup for **Server Mode**; an end-to-end remote-agent connection was not verified during the Pi-only testing.
+
 There are **two monitoring modes**. The same Tkinter dashboard works in either one.
 
 | Mode | What NodeWatch monitors | Requires another machine? |
