@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ROOT="$(cd "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 if [[ ! -x .venv/bin/python ]]; then
   echo "Missing .venv. Set up with: python3 -m venv --system-site-packages .venv && .venv/bin/pip install -r requirements.txt" >&2
