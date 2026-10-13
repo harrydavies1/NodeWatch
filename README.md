@@ -43,7 +43,7 @@ On **Ubuntu Server**:
 sudo apt update
 sudo apt install -y git python3 python3-venv python3-pip
 # After publishing your repository, use its URL:
-git clone https://github.com/YOUR_USERNAME/pi-server-dashboard.git
+git clone https://github.com/harrydavies1/pi-server-dashboard.git
 cd pi-server-dashboard
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
@@ -89,7 +89,7 @@ On the **Raspberry Pi**:
 sudo apt update
 sudo apt install -y git python3 python3-venv python3-pip
 # After publishing your repository, use its URL:
-git clone https://github.com/YOUR_USERNAME/pi-server-dashboard.git
+git clone https://github.com/harrydavies1/pi-server-dashboard.git
 cd pi-server-dashboard
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
