@@ -2,6 +2,8 @@
 
 Server Mode displays **Ubuntu/Linux server telemetry on NodeWatch's first page** and **Raspberry Pi stats on the second page**. The server runs an optional read-only metrics agent; the display stays on the Pi.
 
+**Reference server hardware:** A basic **Dell OptiPlex** desktop running **Ubuntu Server**, with the NodeWatch display on a Raspberry Pi 3B and 3.5-inch OSOYOO SPI RPi Display V1.0. The Pi display was tested in Pi Mode; check the agent connection using the commands below to validate Server Mode end to end.
+
 ## 1. Set up the agent on your Ubuntu Server
 
 On the **Ubuntu Server**, install the agent dependencies:
