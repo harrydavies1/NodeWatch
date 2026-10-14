@@ -9,15 +9,15 @@ Pi Mode displays **live stats from the Raspberry Pi running NodeWatch**. You do 
 ```bash
 sudo apt update
 sudo apt install -y git python3 python3-tk python3-venv python3-pip
-# For private repositories, configure GitHub SSH access before cloning.
-git clone git@github.com:harrydavies1/pi-server-dashboard.git
+# Public repository: HTTPS clone does not require a GitHub SSH key.
+git clone https://github.com/harrydavies1/NodeWatch.git pi-server-dashboard
 cd pi-server-dashboard
 python3 -m venv --system-site-packages .venv
 .venv/bin/pip install -r requirements.txt
 cp -n .env.example .env
 ```
 
-If you already have `~/pi-server-dashboard`, do not clone again. Continue in the existing directory.
+If you already have `~/pi-server-dashboard`, do not clone again. Continue in the existing directory; the GitHub repo was renamed to `NodeWatch` but the local folder name does not have to change.
 
 ## 2. Set Pi Mode
 
@@ -59,7 +59,7 @@ This is a native Python application, not a browser application. It needs a graph
 
 Expected mode: `pi`. CPU and IP are read directly from the Pi.
 
-Page 1 shows CPU, RAM, disk, temperature and uptime. Page 2 shows Pi networking, host information and any optional TCP port checks. The status reads **PI ONLY**. Network counters are total bytes since boot, not current transfer rates.
+Page 1 shows CPU, RAM, disk, an available temperature sensor reading and uptime. Page 2 shows Pi networking, host information and up to three optional TCP port checks (TCP reachability, not full service health). The status reads **PI ONLY**. Network counters are total bytes since boot, not current transfer rates.
 
 To switch to remote monitoring when an Ubuntu Server becomes available, follow [Method 2 — Server Mode](SERVER_MODE.md). Your Pi's metrics remain visible on the second page.
 

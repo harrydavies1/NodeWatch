@@ -9,7 +9,7 @@
 
 **Testing status:** The native Tkinter dashboard was confirmed working fullscreen on this Pi and OSOYOO screen in **Pi Mode**, including the two rotating pages and automatic launch at desktop login. The Ubuntu Server/OptiPlex is the server setup for **Server Mode**; an end-to-end remote-agent connection was not verified during the Pi-only testing.
 
-There are **two monitoring modes**. The same Tkinter dashboard works in either one.
+There are **two monitoring modes**. The same Tkinter dashboard works in either one. Pi Mode has been tested on the hardware listed above; Server Mode is implemented and has automated tests, but still needs end-to-end validation on the physical OptiPlex.
 
 | Mode | What NodeWatch monitors | Requires another machine? |
 | --- | --- | --- |
@@ -24,15 +24,15 @@ Run these commands on the Pi (skip the clone if you already have the project ins
 sudo apt update
 sudo apt install -y git python3 python3-pip python3-venv python3-tk
 
-# For a private repository, configure authorized GitHub SSH access first.
-git clone git@github.com:harrydavies1/pi-server-dashboard.git
+# Public repository: HTTPS clone does not require a GitHub SSH key.
+git clone https://github.com/harrydavies1/NodeWatch.git pi-server-dashboard
 cd pi-server-dashboard
 python3 -m venv --system-site-packages .venv
 .venv/bin/pip install -r requirements.txt
 cp -n .env.example .env
 ```
 
-**Already running NodeWatch?** Keep your existing `~/pi-server-dashboard` directory, `.venv` and `.env`. You can update the code with `git pull` when you want to, without repeating installation.
+**Already running NodeWatch?** Keep your existing `~/pi-server-dashboard` directory, `.venv` and `.env` — don't clone again or overwrite your configuration. The GitHub repository was renamed to `NodeWatch`, but your Pi's local folder can keep its old name. To point an existing checkout at the new address, run `git remote set-url origin https://github.com/harrydavies1/NodeWatch.git` from inside that checkout, then `git pull` whenever you choose to update. This is **not required** for the dashboard to keep running.
 
 ## Method 1 — Pi Mode (no Ubuntu Server)
 
@@ -73,7 +73,7 @@ Save the file and **restart NodeWatch** (if your Pi launches it automatically at
 - **Page 1:** Ubuntu Server CPU, RAM, disk, temperature and uptime.
 - **Page 2:** Remote connection status, optional TCP checks and **the Raspberry Pi's own** CPU, RAM, IP, uptime and cumulative network traffic.
 
-To return to Pi Mode, clear `REMOTE_AGENT_URL` and `REMOTE_AGENT_TOKEN` in the Pi's `.env`, then restart NodeWatch. No code changes are required.
+To return to Pi Mode, clear `REMOTE_AGENT_URL` and `REMOTE_AGENT_TOKEN` in the Pi's `.env`, then restart NodeWatch. **Edit the existing settings rather than adding duplicate lines.** No code changes are required.
 
 ## Launch NodeWatch
 
@@ -127,7 +127,7 @@ To troubleshoot an enabled startup entry, check `bash python-display/autostart.s
 | **1 — System Overview** | Local Pi CPU, RAM, disk, temperature, hostname, uptime | Remote server CPU, RAM, disk, temperature, hostname, uptime |
 | **2 — Network & Services** | Pi IP, CPU/RAM, uptime, cumulative traffic and optional TCP checks | Server connection and optional port checks **alongside** Pi IP, CPU/RAM, uptime and traffic |
 
-Pages switch every **12 seconds** and data updates every **5 seconds** by default. Tap either side of the touchscreen, or use Left/Right arrows to change pages. Press Escape to exit fullscreen.
+Pages switch every **12 seconds** and data updates every **5 seconds** by default. Temperature appears only when an OS sensor is available; the display does not guarantee a CPU-specific sensor. The native page shows **up to three** configured TCP port checks, and those checks do not indicate whether a service or Docker container is healthy. Network upload/download values are **cumulative since boot**, not bandwidth speeds. Tap either side of the touchscreen, or use Left/Right arrows to change pages. Press Escape to exit fullscreen.
 
 ## Check which monitoring mode is running
 
@@ -150,9 +150,10 @@ cd ~/pi-server-dashboard
 | Still seeing Pi stats instead of Ubuntu Server | Ensure `REMOTE_AGENT_URL` is **not empty**, and that you edited the **Pi's** `.env` (not only the server's). Restart NodeWatch. |
 | Server shows OFFLINE | Check that `agent.py` is running on Ubuntu Server, the Pi can reach the server's IP and port 8766, and both machines use matching tokens. |
 | Agent replies `401 Unauthorized` | The Pi's `REMOTE_AGENT_TOKEN` must match Ubuntu Server's `AGENT_TOKEN` exactly. |
-| No CPU temperature | The operating system may not expose a supported sensor; NodeWatch displays a dash rather than inventing a reading. |
-| No service checks | Add valid entries to `SERVICES_JSON` or leave it as `'[]'` to disable checks. Checks test TCP connectivity, not full service health. |
-| Changes to `.env` don't show | Restart the Tkinter dashboard; configuration is read when the application starts. |
+| No temperature reading | The operating system may not expose a supported sensor; NodeWatch displays a dash rather than inventing a reading. |
+| No service checks | Add entries to `SERVICES_JSON` or leave it as `'[]'` to disable checks. Only the first three checks are shown on the native page; checks are TCP reachability probes, not full service or Docker health. |
+| Changes to `.env` don't show | Restart the Tkinter dashboard; configuration is read when the application starts. Don't append duplicate `REMOTE_AGENT_URL` or token lines — edit the existing entries. |
+| Fresh clone fails | Use `https://github.com/harrydavies1/NodeWatch.git` (the public repo's current name). A plain HTTPS clone does not require an SSH key. |
 
 For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERVER_MODE.md), and the [Tkinter display guide](python-display/README.md).
 

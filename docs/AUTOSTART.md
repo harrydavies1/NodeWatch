@@ -12,7 +12,7 @@ The native Tkinter dashboard requires an **already-working graphical desktop**. 
 - You want it to open when the **same user** logs in to the desktop.
 - Make sure other dashboards are not separately configured to open at the same time.
 
-You do **not** need to install a second copy of NodeWatch.
+You do **not** need to install a second copy of NodeWatch. New public-repository installs can use `git clone https://github.com/harrydavies1/NodeWatch.git pi-server-dashboard`; existing installations keep their current folder. The paths below assume the local checkout is `~/pi-server-dashboard`.
 
 ## 2. Enable startup (optional)
 

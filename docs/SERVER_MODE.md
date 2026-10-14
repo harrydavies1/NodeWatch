@@ -11,8 +11,8 @@ On the **Ubuntu Server**, install the agent dependencies:
 ```bash
 sudo apt update
 sudo apt install -y git python3 python3-venv python3-pip
-# For a private repository, configure authorized GitHub SSH access first.
-git clone git@github.com:harrydavies1/pi-server-dashboard.git
+# Public repository: HTTPS clone does not require a GitHub SSH key.
+git clone https://github.com/harrydavies1/NodeWatch.git pi-server-dashboard
 cd pi-server-dashboard
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
@@ -20,9 +20,9 @@ cp -n .env.example .env
 python3 -c 'import secrets; print(secrets.token_urlsafe(36))'
 ```
 
-If the project is already installed on Ubuntu Server, skip cloning and installation.
+If the project is already installed on Ubuntu Server, skip cloning and installation. The repository is public and now named `NodeWatch`; the chosen `pi-server-dashboard` directory is just the local folder name.
 
-Copy the randomly generated token. Edit **Ubuntu Server's `.env`**, setting these values:
+Copy the randomly generated token. Edit **Ubuntu Server's `.env`**, setting these values. **Add `AGENT_TOKEN`, `AGENT_HOST` and `AGENT_PORT` if they are not already present**; do not add duplicate keys:
 
 ```ini
 AGENT_TOKEN=PASTE_YOUR_LONG_RANDOM_TOKEN_HERE
@@ -48,7 +48,14 @@ You should receive JSON with server CPU, RAM, disk, uptime and other metrics. A 
 
 ### Make the server agent start automatically (optional)
 
-Copy `deploy/server-agent.service.example` to `/etc/systemd/system/server-agent.service` on the Ubuntu Server. Edit `YOUR_USERNAME` and the repository paths to match the server account, then run:
+On **Ubuntu Server**, stop any manually running `start-agent.sh` first to avoid a port conflict. Copy the example service and edit the user/path placeholders to match the **Ubuntu Server** account (not the Pi account):
+
+```bash
+sudo cp deploy/server-agent.service.example /etc/systemd/system/server-agent.service
+sudo nano /etc/systemd/system/server-agent.service
+```
+
+Replace **every** `YOUR_USERNAME` in the copied file, save it, then run:
 
 ```bash
 sudo systemctl daemon-reload
@@ -67,7 +74,7 @@ cd ~/pi-server-dashboard
 nano .env
 ```
 
-Change or add:
+Edit the **existing keys** in the Pi's `.env` (only add a key if it is missing — do not create duplicate `REMOTE_AGENT_URL` or `REMOTE_AGENT_TOKEN` lines):
 
 ```ini
 SERVER_NAME="Ubuntu Home Server"
@@ -88,7 +95,7 @@ For optional TCP connection checks, use something like:
 SERVICES_JSON='[{"name":"SSH","host":"YOUR_UBUNTU_SERVER_LAN_IP","port":22}]'
 ```
 
-These are TCP port availability checks, not deep application health checks.
+These are TCP port availability checks, not deep application health checks. The native 480×320 display renders **up to three checks**.
 
 ## 3. Restart the Tkinter display on the Pi
 
@@ -116,13 +123,13 @@ cd ~/pi-server-dashboard
 .venv/bin/python -c 'from dashboard import collect_state; s=collect_state(); print("Mode:", s["server"]["mode"]); print("Connected:", s["server"]["connected"]); print("Pi IP:", s["pi"]["ip"])'
 ```
 
-Expect `Mode: remote` and `Connected: True`. Page 1 now shows server CPU/RAM/disk/temperature/uptime, while page 2 shows the connection and the Raspberry Pi's own health.
+Expect `Mode: remote` and `Connected: True`. This verifies that the Pi can reach the agent and receive data; it doesn't test the physical display by itself. Page 1 now shows server CPU/RAM/disk/an available temperature sensor/uptime, while page 2 shows the connection and the Raspberry Pi's own health.
 
 ## Troubleshooting Server Mode
 
 - **`Mode: pi`:** `REMOTE_AGENT_URL` is still empty or you edited the wrong `.env`. Edit the **Pi's** configuration and restart NodeWatch.
 - **`Mode: remote`, `Connected: False`:** check that the Ubuntu Server agent is running, the server IP/port are correct, and port 8766 is reachable from the Pi.
-- **`401 Unauthorized`:** `REMOTE_AGENT_TOKEN` on the Pi and `AGENT_TOKEN` on Ubuntu Server must match exactly.
+- **`401 Unauthorized`:** `REMOTE_AGENT_TOKEN` on the Pi and `AGENT_TOKEN` on Ubuntu Server must match exactly. On Ubuntu Server, use the authenticated `curl` test in step 1 to confirm the agent accepts the token.
 - **Server shows OFFLINE:** the Pi dashboard still works and displays local Pi stats; correct the server connection rather than changing display code.
 - **No temperature reading:** the server may not expose supported sensors.
 

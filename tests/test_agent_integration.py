@@ -1,0 +1,72 @@
+"""Loopback HTTP test: the real optional server agent and Pi collector interoperate."""
+import os
+import threading
+import unittest
+from http.server import ThreadingHTTPServer
+from unittest.mock import patch
+
+from agent import AgentHandler
+from dashboard import collect_state
+
+PI = {"hostname": "test-pi", "cpu_percent": 10, "memory_percent": 20}
+SERVER = {"hostname": "test-optiplex", "cpu_percent": 48, "memory_percent": 35}
+
+
+class QuietAgentHandler(AgentHandler):
+    def log_message(self, format, *args):
+        pass
+
+
+class AgentIntegrationTests(unittest.TestCase):
+    def setUp(self):
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), QuietAgentHandler)
+        self.worker = threading.Thread(
+            target=self.server.serve_forever, daemon=True
+        )
+        self.worker.start()
+        self.addCleanup(self.server.server_close)
+        self.addCleanup(self.worker.join, 2)
+        self.addCleanup(self.server.shutdown)
+        self.agent_url = "http://127.0.0.1:%d" % self.server.server_port
+
+    def test_real_agent_http_path_with_matching_token(self):
+        env = {
+            "AGENT_TOKEN": "long-test-token",
+            "REMOTE_AGENT_URL": self.agent_url,
+            "REMOTE_AGENT_TOKEN": "long-test-token",
+            "SERVICES_JSON": "[]",
+        }
+        with (
+            patch.dict(os.environ, env),
+            patch("dashboard.snapshot", return_value=PI),
+            patch("agent.snapshot", return_value=SERVER),
+        ):
+            state = collect_state()
+        self.assertEqual(state["server"]["mode"], "remote")
+        self.assertTrue(state["server"]["connected"])
+        self.assertEqual(state["server"]["stats"], SERVER)
+        self.assertEqual(state["pi"], PI)
+        self.assertIsInstance(state["server"]["latency_ms"], int)
+
+    def test_wrong_token_is_offline_without_faking_server_stats(self):
+        env = {
+            "AGENT_TOKEN": "actual-test-token",
+            "REMOTE_AGENT_URL": self.agent_url,
+            "REMOTE_AGENT_TOKEN": "incorrect-token",
+            "SERVICES_JSON": "[]",
+        }
+        with (
+            patch.dict(os.environ, env),
+            patch("dashboard.snapshot", return_value=PI),
+            patch("agent.snapshot", return_value=SERVER),
+        ):
+            state = collect_state()
+        self.assertEqual(state["server"]["mode"], "remote")
+        self.assertFalse(state["server"]["connected"])
+        self.assertIsNone(state["server"]["stats"])
+        self.assertEqual(state["pi"], PI)
+        self.assertIn("401", state["server"]["error"])
+
+
+if __name__ == "__main__":
+    unittest.main()

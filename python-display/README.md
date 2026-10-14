@@ -24,15 +24,15 @@ Edit the Pi's `.env` and restart the application to change modes.
 ```bash
 sudo apt update
 sudo apt install -y git python3 python3-tk python3-venv python3-pip
-# For private repositories, configure authorized GitHub SSH credentials first:
-git clone git@github.com:harrydavies1/pi-server-dashboard.git
+# Public repository: HTTPS clone does not require a GitHub SSH key.
+git clone https://github.com/harrydavies1/NodeWatch.git pi-server-dashboard
 cd pi-server-dashboard
 python3 -m venv --system-site-packages .venv
 .venv/bin/pip install -r requirements.txt
 cp -n .env.example .env
 ```
 
-If NodeWatch is already installed, keep the existing checkout, `.venv` and `.env`.
+If NodeWatch is already installed, keep the existing checkout, `.venv` and `.env`; do not clone again. The public GitHub repo is named `NodeWatch`, but the clone command above deliberately preserves the original local `pi-server-dashboard` folder name.
 
 ## Launch
 
@@ -61,7 +61,7 @@ If you want NodeWatch to open when the Pi graphical desktop logs in, run `bash p
 - Tap left/right side of screen or press Left/Right arrow keys to navigate.
 - Press Escape to leave fullscreen.
 - Adjust `REFRESH_SECONDS` and `ROTATE_SECONDS` in the Pi's `.env` and restart.
-- Optional `SERVICES_JSON` checks whether TCP ports are reachable.
+- Optional `SERVICES_JSON` checks TCP port reachability (up to three displayed), not application/process/Docker health. Network totals are cumulative since boot.
 
 ## Troubleshooting
 
