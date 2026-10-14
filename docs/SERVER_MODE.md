@@ -46,22 +46,28 @@ curl -H 'Authorization: Bearer PASTE_YOUR_LONG_RANDOM_TOKEN_HERE' http://127.0.0
 
 You should receive JSON with server CPU, RAM, disk, uptime and other metrics. A wrong token returns `401`.
 
-### Make the server agent start automatically (optional)
+### Optional: start the agent automatically on each Ubuntu Server boot
 
-On **Ubuntu Server**, stop any manually running `start-agent.sh` first to avoid a port conflict. Copy the example service and edit the user/path placeholders to match the **Ubuntu Server** account (not the Pi account):
+After verifying the agent with `bash start-agent.sh` and the authenticated `curl` test, **stop the manually running agent with Ctrl+C** to avoid a port conflict.
 
-```bash
-sudo cp deploy/server-agent.service.example /etc/systemd/system/server-agent.service
-sudo nano /etc/systemd/system/server-agent.service
-```
-
-Replace **every** `YOUR_USERNAME` in the copied file, save it, then run:
+On **Ubuntu Server** as your normal login user (not the Pi), run:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now server-agent
-sudo systemctl status server-agent --no-pager
+cd ~/pi-server-dashboard
+bash deploy/server-agent-autostart.sh enable
 ```
+
+The helper validates the server's agent token and paths, generates a systemd service for the current Ubuntu user and starts it **now and on future boots**. It restarts the agent if it fails. You don't need to log in for it to start. The setup is **optional and off by default**.
+
+```bash
+bash deploy/server-agent-autostart.sh status
+bash deploy/server-agent-autostart.sh logs
+bash deploy/server-agent-autostart.sh disable
+```
+
+`disable` stops the agent immediately and prevents boot startup. If an existing manually installed `server-agent.service` is detected, the helper refuses to overwrite it — you can manage that existing unit with `sudo systemctl enable --now server-agent` instead. See [full Ubuntu Server autostart guide](SERVER_AUTOSTART.md) for reboot verification and troubleshooting.
+
+Note: the Ubuntu agent **listens** for HTTP requests; the Pi dashboard fetches metrics. The server does not stream stats to the Pi continuously.
 
 For a Pi connecting over the network, `AGENT_HOST=0.0.0.0` makes the agent listen on server interfaces. Restrict port 8766 to the Pi over a trusted LAN or VPN. Do not expose the unencrypted HTTP endpoint to the public internet.
 

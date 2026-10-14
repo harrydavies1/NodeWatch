@@ -75,6 +75,26 @@ Save the file and **restart NodeWatch** (if your Pi launches it automatically at
 
 To return to Pi Mode, clear `REMOTE_AGENT_URL` and `REMOTE_AGENT_TOKEN` in the Pi's `.env`, then restart NodeWatch. **Edit the existing settings rather than adding duplicate lines.** No code changes are required.
 
+## Optional: start the Ubuntu Server metrics agent on boot
+
+For **Server Mode**, the Ubuntu Server can start its read-only agent automatically whenever Ubuntu boots — no login or desktop is needed. After completing [Server Mode setup](docs/SERVER_MODE.md), stop any manually running agent, then on the **Ubuntu Server** run:
+
+```bash
+cd ~/pi-server-dashboard
+bash deploy/server-agent-autostart.sh enable
+```
+
+Check or disable the agent using:
+
+```bash
+bash deploy/server-agent-autostart.sh status
+bash deploy/server-agent-autostart.sh disable
+```
+
+The optional systemd service starts the agent immediately, keeps it available after reboots and restarts it after unexpected failures. This is **off by default** and separate from the Pi's optional graphical autostart. The server **listens**, while the Pi requests fresh stats periodically.
+
+[Complete optional Ubuntu Server autostart guide →](docs/SERVER_AUTOSTART.md)
+
 ## Launch NodeWatch
 
 From the Raspberry Pi's working graphical desktop:
@@ -166,7 +186,9 @@ For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERV
 - `metrics.py` — psutil CPU/RAM/disk/temperature/uptime/network snapshot
 - `agent.py` and `start-agent.sh` — optional Ubuntu Server telemetry agent
 - `.env.example` — configuration template; keep your real `.env` local
-- `deploy/server-agent.service.example` — optional Ubuntu Server agent service
+- `deploy/server-agent-autostart.sh` — optional agent startup enable/disable/status on Ubuntu Server
+- `deploy/server_agent_service.py` — validates and renders the Ubuntu systemd unit
+- `deploy/server-agent.service.example` — optional manual service template
 - `tests/` — Python tests
 
 ## Run tests
