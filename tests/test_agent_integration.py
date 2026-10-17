@@ -67,6 +67,30 @@ class AgentIntegrationTests(unittest.TestCase):
         self.assertEqual(state["pi"], PI)
         self.assertIn("401", state["server"]["error"])
 
+    def test_remote_agent_transmits_configured_nas_storage(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from metrics import snapshot
+        with TemporaryDirectory() as folder:
+            env = {
+                "AGENT_TOKEN": "test-token",
+                "REMOTE_AGENT_URL": self.agent_url,
+                "REMOTE_AGENT_TOKEN": "test-token",
+                "NAS_STORAGE_PATH": str(Path(folder)),
+                "SERVICES_JSON": "[]",
+            }
+            with (
+                patch.dict(os.environ, env),
+                patch("dashboard.snapshot", return_value=PI),
+                patch("agent.snapshot", side_effect=snapshot),
+            ):
+                state = collect_state()
+        self.assertTrue(state["server"]["connected"])
+        nas = state["server"]["stats"]["nas_storage"]
+        self.assertEqual(nas["status"], "system_disk")
+        self.assertEqual(nas["path"], folder)
+        self.assertGreater(nas["disk_total"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

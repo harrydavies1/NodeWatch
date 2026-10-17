@@ -103,6 +103,12 @@ SERVICES_JSON='[{"name":"SSH","host":"YOUR_UBUNTU_SERVER_LAN_IP","port":22}]'
 
 These are TCP port availability checks, not deep application health checks. The native 480×320 display renders **up to three checks**.
 
+### Optional: display Samba NAS storage usage
+
+NodeWatch can show the actual filesystem used by a Samba share as an additional metric on **page 1**. The agent reads the directory configured as `NAS_STORAGE_PATH` on **Ubuntu Server**, then the Pi displays the result. This does not change your Samba shares or require putting an NAS path in the Pi's `.env`.
+
+[Step-by-step NAS storage setup →](NAS_STORAGE.md)
+
 ## 3. Restart the Tkinter display on the Pi
 
 If running manually, stop it with Ctrl+C and restart from the Pi's graphical desktop:

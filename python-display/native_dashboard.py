@@ -3,7 +3,7 @@
 
 Requires a functioning X11/Wayland graphical session and python3-tk; an SPI
 screen's display driver still needs to be configured in Raspberry Pi OS.
-Reads the same .env as the web dashboard and the same read-only metrics agent.
+Reads the Pi's .env and optional read-only remote metrics agent.
 """
 
 import argparse
@@ -191,6 +191,21 @@ class Dashboard:
             else:
                 txt(259, 212, "--", 22, MUTED, True)
             txt(355, 220, "UP " + readable_uptime(stats.get("uptime_seconds")), 10, MUTED)
+            nas = stats.get("nas_storage")
+            if status != "OFFLINE" and isinstance(nas, dict):
+                nas_status = nas.get("status")
+                panel(12, 264, 468, 300)
+                if nas_status in ("ok", "system_disk"):
+                    heading = "NAS STORAGE" if nas_status == "ok" else "NAS ON SYSTEM DISK"
+                    txt(23, 270, heading, 10, AMBER if nas_status != "ok" else MUTED, True)
+                    txt(226, 269, readable_percent(nas.get("disk_percent")), 13, INK, True)
+                    used = readable_size(nas.get("disk_used"))
+                    total = readable_size(nas.get("disk_total"))
+                    txt(292, 271, used + " / " + total, 10, MUTED)
+                    bar(23, 290, 432, nas.get("disk_percent"))
+                else:
+                    txt(23, 270, "NAS STORAGE UNAVAILABLE", 11, RED, True)
+                    txt(23, 285, "Check NAS_STORAGE_PATH and mount", 10, MUTED)
             if status == "OFFLINE":
                 txt(14, 262, "Server offline: check agent and network", 10, RED)
         else:
