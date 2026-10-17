@@ -76,6 +76,47 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual(nas_storage_snapshot(),
                              {"path": "share", "status": "unavailable"})
 
+    def test_two_nas_paths_have_independent_readings(self):
+        from metrics import nas_volumes_snapshot
+        paths = '[{"name":"Drive 1","path":"/srv/nas/drive1"},{"name":"Drive 2","path":"/srv/nas/drive2"}]'
+        with (
+            patch.dict(os.environ, {"NAS_STORAGE_PATHS": paths}),
+            patch("metrics.nas_storage_snapshot", side_effect=[
+                {"path": "/srv/nas/drive1", "status": "ok", "disk_percent": 25.0},
+                {"path": "/srv/nas/drive2", "status": "ok", "disk_percent": 60.0},
+            ]),
+        ):
+            volumes = nas_volumes_snapshot()
+        self.assertEqual([v["name"] for v in volumes], ["Drive 1", "Drive 2"])
+        self.assertEqual([v["disk_percent"] for v in volumes], [25.0, 60.0])
+
+    def test_unmounted_second_nas_is_not_reported_as_healthy(self):
+        from metrics import nas_volumes_snapshot
+        config = '[{"name":"Drive 1","path":"/srv/nas/drive1"},{"name":"Drive 2","path":"/srv/nas/drive2"}]'
+        with (
+            patch.dict(os.environ, {"NAS_STORAGE_PATHS": config}),
+            patch("metrics.nas_storage_snapshot", side_effect=[
+                {"path": "/srv/nas/drive1", "status": "ok", "disk_percent": 10.0},
+                {"path": "/srv/nas/drive2", "status": "system_disk"},
+            ]),
+        ):
+            first, second = nas_volumes_snapshot()
+        self.assertEqual(first["status"], "ok")
+        self.assertEqual(second["status"], "system_disk")
+        self.assertNotIn("disk_percent", second)
+
+    def test_bad_nas_paths_configuration_displays_warning(self):
+        from metrics import nas_volumes_snapshot
+        for raw in ("not JSON", "[]", '[{"name":"a","path":"/a"},{"name":"b","path":"/b"},{"name":"c","path":"/c"}]'):
+            with self.subTest(raw=raw):
+                with patch.dict(os.environ, {"NAS_STORAGE_PATHS": raw}):
+                    self.assertEqual(nas_volumes_snapshot()[0]["status"], "invalid")
+
+    def test_disabled_multi_nas_keeps_legacy_single_path(self):
+        from metrics import nas_volumes_snapshot
+        with patch.dict(os.environ, {"NAS_STORAGE_PATHS": ""}):
+            self.assertEqual(nas_volumes_snapshot(), [])
+
 
 if __name__ == "__main__":
     unittest.main()

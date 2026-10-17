@@ -42,3 +42,20 @@ def status_label(server):
     if server.get("mode") == "pi":
         return "PI ONLY"
     return "CONNECTED" if server.get("connected") else "OFFLINE"
+
+
+def nas_volumes_for_state(state):
+    """Return two-drive metrics only in configured remote Server Mode."""
+    server = (state or {}).get("server") or {}
+    if server.get("mode") != "remote":
+        return []
+    stats = server.get("stats") or {}
+    volumes = stats.get("nas_volumes")
+    if not isinstance(volumes, list):
+        return []
+    return [item for item in volumes[:2] if isinstance(item, dict)]
+
+
+def page_count_for_state(state):
+    """Existing two-page experience stays unchanged until multi-NAS is set."""
+    return 3 if nas_volumes_for_state(state) else 2

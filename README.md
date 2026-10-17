@@ -1,15 +1,15 @@
 # NodeWatch — Raspberry Pi monitoring dashboard
 
-**NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two automatically rotating pages of live stats and **does not need a web browser**.
+**NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two automatically rotating pages of live stats (or **three** when multi-drive NAS monitoring is enabled) and **does not need a web browser**.
 
 ## Hardware used
 
 - **Raspberry Pi display:** Raspberry Pi 3 Model B (Pi 3B) with a **3.5-inch OSOYOO SPI RPi Display V1.0**.
 - **Server hardware:** A basic **Dell OptiPlex** desktop running **Ubuntu Server**.
 
-**Testing status:** The native Tkinter dashboard was confirmed working on the Raspberry Pi and OSOYOO screen, with both pages and desktop autostart. Server Mode has also been confirmed working between the Dell OptiPlex Ubuntu Server agent and the Pi. The optional NAS-drive display is newly added and still needs verification against the actual Samba storage mount.
+**Testing status:** The native Tkinter dashboard and Server Mode were confirmed working between the Raspberry Pi 3B with OSOYOO screen and the Ubuntu Server Dell OptiPlex. The new two-drive NAS page has automated tests but still needs a real-display check after updating both devices.
 
-There are **two monitoring modes**. The same Tkinter dashboard works in either one; both have now been tested with the Pi and OptiPlex. Optional NAS-drive display has automated checks but awaits a test with your real mount.
+There are **two monitoring modes**. The same Tkinter dashboard works in either one; both have now been tested with the Pi and OptiPlex. Optional dual-NAS display has automated checks but awaits verification on the real screen.
 
 | Mode | What NodeWatch monitors | Requires another machine? |
 | --- | --- | --- |
@@ -75,26 +75,21 @@ Save the file and **restart NodeWatch** (if your Pi launches it automatically at
 
 To return to Pi Mode, clear `REMOTE_AGENT_URL` and `REMOTE_AGENT_TOKEN` in the Pi's `.env`, then restart NodeWatch. **Edit the existing settings rather than adding duplicate lines.** No code changes are required.
 
-## Optional Samba NAS drive monitoring
+## Optional: monitor both Samba NAS drives
 
-**Server Mode can also show the storage usage of the filesystem containing your Samba files**, separately from Ubuntu's system disk. This is optional: if you leave `NAS_STORAGE_PATH` unset, NodeWatch looks the same as before.
+Server Mode can display independent storage usage for **two NAS disks** without replacing the Ubuntu root **DISK** tile. It adds a dedicated **third page** to the 480×320 Tkinter display, with a separate usage bar, used/free capacity and mount warnings for each drive. The feature is disabled until you configure `NAS_STORAGE_PATHS`.
 
-On **Ubuntu Server** (not the Pi), find the actual mount that backs your Samba share. For example, if Samba serves `/srv/nas/shared`, run:
-
-```bash
-findmnt -T /srv/nas/shared -o TARGET,SOURCE,FSTYPE
-df -h /srv/nas/shared
-```
-
-Replace the example path with your real share directory. `findmnt` reveals whether the files are on the system disk (`/`) or a separately mounted NAS drive. In Ubuntu's `~/pi-server-dashboard/.env`, add **one** line:
+On **Ubuntu Server**, edit `~/pi-server-dashboard/.env` and add:
 
 ```ini
-NAS_STORAGE_PATH=/YOUR/REAL/NAS/MOUNT/OR/SHARE/DIRECTORY
+NAS_STORAGE_PATHS='[{"name":"NAS Drive 1","path":"/srv/nas/drive1"},{"name":"NAS Drive 2","path":"/srv/nas/drive2"}]'
 ```
 
-Then restart the agent with `sudo systemctl restart server-agent`, and run `git pull` in the Pi's NodeWatch checkout and restart its Tkinter dashboard. In Server Mode, page 1 will display **NAS STORAGE** usage at the bottom, alongside the existing Ubuntu root disk statistic. If the path disappears, it displays **NAS STORAGE UNAVAILABLE**; if the path is on Ubuntu's root filesystem, it displays **NAS ON SYSTEM DISK**, not a misleading separate-drive reading. No Samba configuration or files are modified.
+These are the confirmed Samba mount paths for the Dell OptiPlex build. Keep the existing agent token/settings; remove or comment out any old `NAS_STORAGE_PATH` single-drive line for clarity.
 
-[Detailed NAS storage setup and troubleshooting →](docs/NAS_STORAGE.md)
+Pull the latest code and restart the agent on **Ubuntu Server**, then pull on the **Pi**, verify `nas_volumes` is arriving and restart its Tkinter dashboard. The monitoring code will show **MOUNT MISSING / SYSTEM DISK** or **UNAVAILABLE** instead of reporting a missing NAS disk as healthy. Existing Pi Mode and older single-drive monitoring remain supported.
+
+[Step-by-step two-drive setup and troubleshooting →](docs/NAS_STORAGE.md)
 
 ## Optional: start the Ubuntu Server metrics agent on boot
 
@@ -165,10 +160,11 @@ To troubleshoot an enabled startup entry, check `bash python-display/autostart.s
 
 | Screen | Pi Mode | Server Mode |
 | --- | --- | --- |
-| **1 — System Overview** | Local Pi CPU, RAM, root disk, temperature, hostname, uptime | Remote server CPU, RAM, root disk, temperature, hostname, uptime, and optional Samba NAS filesystem usage |
+| **1 — System Overview** | Local Pi CPU, RAM, root disk, temperature, hostname, uptime | Ubuntu Server CPU, RAM, root disk, temperature, hostname, uptime; optional legacy single-NAS strip |
 | **2 — Network & Services** | Pi IP, CPU/RAM, uptime, cumulative traffic and optional TCP checks | Server connection and optional port checks **alongside** Pi IP, CPU/RAM, uptime and traffic |
+| **3 — NAS Storage (optional)** | Not shown | Two independently monitored Ubuntu NAS volumes, with usage and mount warnings when configured |
 
-Pages switch every **12 seconds** and data updates every **5 seconds** by default. Temperature appears only when an OS sensor is available; the display does not guarantee a CPU-specific sensor. The native page shows **up to three** configured TCP port checks, and those checks do not indicate whether a service or Docker container is healthy. Network upload/download values are **cumulative since boot**, not bandwidth speeds. Tap either side of the touchscreen, or use Left/Right arrows to change pages. Press Escape to exit fullscreen.
+Pages switch every **12 seconds** and data updates every **5 seconds** by default. Pi Mode remains two pages; the NAS page appears in Server Mode only when multi-drive data is available. Temperature appears only when an OS sensor is available; the display does not guarantee a CPU-specific sensor. The native page shows **up to three** configured TCP port checks, and those checks do not indicate whether a service or Docker container is healthy. Network upload/download values are **cumulative since boot**, not bandwidth speeds. Tap either side of the touchscreen, or use Left/Right arrows to change pages. Press Escape to exit fullscreen.
 
 ## Check which monitoring mode is running
 
@@ -204,7 +200,7 @@ For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERV
 - `python-display/start-native.sh` — native display launcher
 - `python-display/autostart.sh` — optional desktop startup enable/disable helper
 - `dashboard.py` — **telemetry collection only** for Pi Mode and Server Mode (no browser server)
-- `metrics.py` — psutil CPU/RAM/disk/temperature/uptime/network snapshot, plus optional NAS filesystem usage
+- `metrics.py` — psutil CPU/RAM/disk/temperature/uptime/network snapshot, plus optional one/two NAS filesystem readings
 - `agent.py` and `start-agent.sh` — optional Ubuntu Server telemetry agent
 - `.env.example` — configuration template; keep your real `.env` local
 - `deploy/server-agent-autostart.sh` — optional agent startup enable/disable/status on Ubuntu Server

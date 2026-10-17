@@ -1,6 +1,6 @@
 # NodeWatch — Native Tkinter dashboard
 
-NodeWatch uses **one display implementation: native Python/Tkinter**. It is designed for Raspberry Pi, including a Pi 3B with a small SPI display (commonly 480×320). It **does not require Chromium**.
+NodeWatch uses **one display implementation: native Python/Tkinter**. It is designed for Raspberry Pi, including a Pi 3B with a small SPI display (commonly 480×320). Two pages are shown by default; a dedicated third NAS page appears in Server Mode when two-drive monitoring is configured. It **does not require Chromium**.
 
 ## Tested Raspberry Pi display
 
@@ -57,7 +57,7 @@ If you want NodeWatch to open when the Pi graphical desktop logs in, run `bash p
 
 ## Controls and settings
 
-- Stats refresh every 5 seconds; pages alternate every 12 seconds by default.
+- Stats refresh every 5 seconds; pages alternate every 12 seconds by default. A third page for up to two NAS filesystems appears only in Server Mode when `NAS_STORAGE_PATHS` is configured on the Ubuntu Server; see [NAS Storage](../docs/NAS_STORAGE.md).
 - Tap left/right side of screen or press Left/Right arrow keys to navigate.
 - Press Escape to leave fullscreen.
 - Adjust `REFRESH_SECONDS` and `ROTATE_SECONDS` in the Pi's `.env` and restart.

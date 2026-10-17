@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Native two-page Raspberry Pi dashboard (no web browser required).
+"""Native Raspberry Pi dashboard with optional NAS page (no browser required).
 
 Requires a functioning X11/Wayland graphical session and python3-tk; an SPI
 screen's display driver still needs to be configured in Raspberry Pi OS.
@@ -26,6 +26,8 @@ from ui_helpers import (  # noqa: E402
     readable_percent,
     readable_size,
     readable_uptime,
+    nas_volumes_for_state,
+    page_count_for_state,
     safe_text,
     status_label,
 )
@@ -108,6 +110,7 @@ class Dashboard:
                 self.problem = ""
             else:
                 self.problem = new_error or "Unable to read metrics"
+        self.page %= page_count_for_state(self.state)
         settings = (self.state or {}).get("settings", {})
         seconds = settings.get("rotate_seconds", 12)
         try:
@@ -120,7 +123,7 @@ class Dashboard:
         self.root.after(500, self.poll)
 
     def change_page(self, direction):
-        self.page = (self.page + direction) % 2
+        self.page = (self.page + direction) % page_count_for_state(self.state)
         self.last_change = time.monotonic()
         self.draw()
 
@@ -192,7 +195,7 @@ class Dashboard:
                 txt(259, 212, "--", 22, MUTED, True)
             txt(355, 220, "UP " + readable_uptime(stats.get("uptime_seconds")), 10, MUTED)
             nas = stats.get("nas_storage")
-            if status != "OFFLINE" and isinstance(nas, dict):
+            if status != "OFFLINE" and isinstance(nas, dict) and not nas_volumes_for_state(self.state):
                 nas_status = nas.get("status")
                 panel(12, 264, 468, 300)
                 if nas_status in ("ok", "system_disk"):
@@ -208,6 +211,45 @@ class Dashboard:
                     txt(23, 285, "Check NAS_STORAGE_PATH and mount", 10, MUTED)
             if status == "OFFLINE":
                 txt(14, 262, "Server offline: check agent and network", 10, RED)
+
+        elif self.page == 2:
+            server = self.state.get("server") or {}
+            status = status_label(server)
+            volumes = nas_volumes_for_state(self.state)
+            txt(13, 44, "NAS STORAGE", 17, INK, True)
+            txt(13, 69, safe_text(server.get("name"), 32), 10, MUTED)
+            txt(466, 69, status, 10, GREEN if status != "OFFLINE" else RED,
+                True, anchor="ne")
+
+            if status == "OFFLINE":
+                txt(240, 154, "Server offline — NAS data unavailable", 14,
+                    RED, anchor="center")
+            else:
+                for index, volume in enumerate(volumes[:2]):
+                    y = 85 + index * 104
+                    panel(12, y, 468, y + 96)
+                    name = safe_text(volume.get("name"), 24, "NAS DRIVE")
+                    path = safe_text(volume.get("path"), 46)
+                    disk_status = volume.get("status")
+                    txt(23, y + 9, name, 12, INK, True)
+                    txt(23, y + 30, path, 9, MUTED)
+                    if disk_status == "ok":
+                        txt(450, y + 9, readable_percent(volume.get("disk_percent")),
+                            21, CYAN, True, anchor="ne")
+                        used = readable_size(volume.get("disk_used"))
+                        total = readable_size(volume.get("disk_total"))
+                        free = readable_size(volume.get("disk_free"))
+                        txt(23, y + 51, used + " used / " + total, 10, MUTED)
+                        txt(450, y + 51, free + " free", 10, MUTED, anchor="ne")
+                        bar(23, y + 77, 431, volume.get("disk_percent"))
+                    elif disk_status == "system_disk":
+                        txt(23, y + 54, "WARNING: MOUNT MISSING / SYSTEM DISK",
+                            11, AMBER, True)
+                        txt(450, y + 9, "CHECK", 15, AMBER, True, anchor="ne")
+                    else:
+                        txt(23, y + 54, "UNAVAILABLE — CHECK NAS PATH / MOUNT",
+                            11, RED, True)
+                        txt(450, y + 9, "OFFLINE", 14, RED, True, anchor="ne")
         else:
             server = self.state.get("server") or {}
             pi = self.state.get("pi") or {}
@@ -242,7 +284,9 @@ class Dashboard:
                 txt(13, 277, "No TCP service checks configured", 10, MUTED)
         c.create_line(12 * sx, 304 * sy, 468 * sx, 304 * sy, fill=BORDER)
         txt(13, 309, "◀", 10, MUTED)
-        txt(240, 309, "●  ○" if self.page == 0 else "○  ●", 10, CYAN, anchor="n")
+        dots = ["●" if i == self.page else "○"
+                for i in range(page_count_for_state(self.state))]
+        txt(240, 309, "  ".join(dots), 10, CYAN, anchor="n")
         txt(466, 309, "▶", 10, MUTED, anchor="ne")
 
     def run(self):

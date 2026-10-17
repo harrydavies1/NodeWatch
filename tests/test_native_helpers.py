@@ -27,6 +27,23 @@ class NativeHelpersTests(unittest.TestCase):
     def test_strip_control_chars(self):
         self.assertEqual(safe_text("Pi\nDisplay"), "PiDisplay")
 
+    def test_storage_page_only_for_remote_multi_nas(self):
+        from ui_helpers import page_count_for_state, nas_volumes_for_state
+        self.assertEqual(page_count_for_state(None), 2)
+        stats = {"nas_volumes": [
+            {"name": "NAS Drive 1", "status": "ok"},
+            {"name": "NAS Drive 2", "status": "system_disk"},
+        ]}
+        state = {"server": {"mode": "remote", "connected": True,
+                            "stats": stats}}
+        self.assertEqual(page_count_for_state(state), 3)
+        self.assertEqual(len(nas_volumes_for_state(state)), 2)
+        state["server"]["mode"] = "pi"
+        self.assertEqual(page_count_for_state(state), 2)
+        state["server"]["mode"] = "remote"
+        state["server"]["stats"] = {"nas_storage": {"status": "ok"}}
+        self.assertEqual(page_count_for_state(state), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -91,6 +91,30 @@ class AgentIntegrationTests(unittest.TestCase):
         self.assertEqual(nas["path"], folder)
         self.assertGreater(nas["disk_total"], 0)
 
+    def test_two_nas_volumes_travel_from_server_agent_to_pi(self):
+        remote = {**SERVER, "nas_volumes": [
+            {"name": "NAS Drive 1", "path": "/srv/nas/drive1",
+             "status": "ok", "disk_percent": 0.1, "disk_total": 500000000000},
+            {"name": "NAS Drive 2", "path": "/srv/nas/drive2",
+             "status": "ok", "disk_percent": 26.1, "disk_total": 500000000000},
+        ]}
+        env = {
+            "AGENT_TOKEN": "matching-test-token",
+            "REMOTE_AGENT_URL": self.agent_url,
+            "REMOTE_AGENT_TOKEN": "matching-test-token",
+            "SERVICES_JSON": "[]",
+        }
+        with (
+            patch.dict(os.environ, env),
+            patch("dashboard.snapshot", return_value=PI),
+            patch("agent.snapshot", return_value=remote),
+        ):
+            state = collect_state()
+        self.assertTrue(state["server"]["connected"])
+        volumes = state["server"]["stats"]["nas_volumes"]
+        self.assertEqual(len(volumes), 2)
+        self.assertEqual([v["disk_percent"] for v in volumes], [0.1, 26.1])
+
 
 if __name__ == "__main__":
     unittest.main()

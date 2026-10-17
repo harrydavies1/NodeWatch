@@ -1,95 +1,101 @@
-# Optional Samba NAS drive usage on NodeWatch
+# Monitor two separate Samba NAS drives
 
-This feature adds a **NAS STORAGE** usage strip to the bottom of NodeWatch's **System Overview (page 1)** in Server Mode. The original **DISK** tile continues to show Ubuntu's system filesystem (`/`).
+NodeWatch can show **both NAS drives independently** on a dedicated third page in Server Mode, without changing Samba or the data on either drive.
 
-This monitors **filesystem space**, not Samba activity, transfer speeds, individual shares or file contents. It does not need Samba credentials and does not change your shares. Disabled by default.
+Your example hardware is a Dell OptiPlex with Ubuntu Server and two separate ext4 disks:
 
-## 1. Identify where Samba actually stores files (Ubuntu Server)
+| Drive | Ubuntu mountpoint | Samba share path |
+| --- | --- | --- |
+| NAS Drive 1 | `/srv/nas/drive1` | `/srv/nas/drive1` |
+| NAS Drive 2 | `/srv/nas/drive2` | `/srv/nas/drive2` |
 
-Run on your **Dell OptiPlex Ubuntu Server**, with the path changed to the folder exported by Samba:
+The original **DISK** tile on page 1 still measures Ubuntu's system filesystem (`/`). The **NAS STORAGE** page separately shows each configured volume's percentage used, used/total space, free space and mount-health warnings. The network page still shows the Pi's health.
 
-```bash
-test -d /srv/nas/shared && echo "Directory exists"
-findmnt -T /srv/nas/shared -o TARGET,SOURCE,FSTYPE
-df -h /srv/nas/shared
-```
+**This is filesystem capacity monitoring, not Samba traffic, client connections, drive SMART health or individual folder sizes.** An unmounted disk is flagged instead of reporting the Ubuntu system filesystem as NAS capacity.
 
-The directory above is **only an example** — don't use it unless it really exists on your NAS. To find your actual shares, you can inspect the Samba configuration:
+## Step 1 — Confirm both NAS mounts (Ubuntu Server)
 
-```bash
-testparm -s
-```
-
-Look for each share's `path = ...`, then use `findmnt -T` with that path to locate its backing filesystem. `TARGET` is the mounted volume's path (such as `/mnt/storage`); `SOURCE` is the device.
-
-If `TARGET` is `/`, the share lives on the system filesystem rather than a separate NAS drive. NodeWatch will show **NAS ON SYSTEM DISK** instead of treating it as another disk.
-
-## 2. Set the NAS storage path on Ubuntu Server ONLY
+On **Ubuntu Server** (`harry@homeserver`), run:
 
 ```bash
-cd ~/pi-server-dashboard
-nano .env
+findmnt -T /srv/nas/drive1 -o TARGET,SOURCE,FSTYPE
+findmnt -T /srv/nas/drive2 -o TARGET,SOURCE,FSTYPE
+df -h /srv/nas/drive1 /srv/nas/drive2
 ```
 
-Add exactly one `NAS_STORAGE_PATH` setting pointing to the existing NAS disk's mountpoint or a folder within it:
+You should see the two ext4 mounts separately. If either resolves to `/` instead of its NAS mount, **check the disk mount before proceeding**. Do not format or repartition anything.
 
-```ini
-NAS_STORAGE_PATH=/mnt/storage
-```
+## Step 2 — Update and configure the Ubuntu Server agent
 
-**Replace `/mnt/storage` with your actual path.** It must be an absolute directory path on **Ubuntu Server**, not a Mac SMB URL (`smb://...`), not a Samba share name, and not a Pi path. Keep your existing `AGENT_TOKEN`, `AGENT_HOST`, and `AGENT_PORT` unchanged.
-
-If you have several shares on the same drive, select any path on that drive: storage capacity describes the underlying filesystem, not each Samba share's folder size. Only one NAS volume is displayed currently.
-
-## 3. Update the Ubuntu Server agent and test
-
-If you haven't updated the checkout since this feature was added:
+Only on **Ubuntu Server**:
 
 ```bash
 cd ~/pi-server-dashboard
 git pull
+nano .env
 ```
 
-Restart the existing server agent to load its new code and config:
+Add **one** `NAS_STORAGE_PATHS` line exactly like this:
+
+```ini
+NAS_STORAGE_PATHS='[{"name":"NAS Drive 1","path":"/srv/nas/drive1"},{"name":"NAS Drive 2","path":"/srv/nas/drive2"}]'
+```
+
+Use the **existing mount paths** above. Keep `AGENT_TOKEN`, `AGENT_HOST` and `AGENT_PORT` unchanged.
+
+If you previously configured the old single-drive line `NAS_STORAGE_PATH=/srv/nas/drive1`, **remove or comment out that old line** for clarity. The new setting is independent, but this avoids duplicate legacy disk reporting.
+
+Save using Ctrl+O, Enter, Ctrl+X, then restart the agent:
 
 ```bash
 sudo systemctl restart server-agent
 sudo systemctl status server-agent --no-pager
 ```
 
-Check the local metric **without printing any tokens**:
+Check the new data **locally on Ubuntu Server** without exposing the token:
 
 ```bash
-.venv/bin/python -c 'from dotenv import load_dotenv; load_dotenv(".env"); from metrics import snapshot; print(snapshot()["nas_storage"])'
+.venv/bin/python -c 'from dotenv import load_dotenv; load_dotenv(".env"); from metrics import snapshot; print(snapshot()["nas_volumes"])'
 ```
 
-Expected: a dictionary with your path, `status: 'ok'`, and `disk_percent`, `disk_used`, `disk_total`, `disk_free`. A status of `system_disk` means your path is on the same filesystem as Ubuntu's `/`; `unavailable` means the path is missing, inaccessible or invalid.
+You should see **two dictionaries**: one for each drive, with `status: 'ok'`, `disk_percent`, `disk_used`, `disk_total` and `disk_free`. The figures will reflect your live storage, not example values.
 
-## 4. Update the Raspberry Pi display
+## Step 3 — Update the Raspberry Pi dashboard
 
-On the **Raspberry Pi** (not the Ubuntu Server), keep the existing Server Mode `.env` and token. Update the code:
+On the **Raspberry Pi** (`admin@pi`), keep the existing working Server Mode `.env`, LAN address and token:
 
 ```bash
 cd ~/pi-server-dashboard
 git pull
-.venv/bin/python -c 'from dashboard import collect_state; s=collect_state(); print("Mode:", s["server"]["mode"]); print("Connected:", s["server"]["connected"]); print("NAS:", (s["server"]["stats"] or {}).get("nas_storage"))'
+.venv/bin/python -c 'from dashboard import collect_state; s=collect_state(); print("Mode:", s["server"]["mode"]); print("Connected:", s["server"]["connected"]); print("NAS drives:", (s["server"]["stats"] or {}).get("nas_volumes"))'
 ```
 
-If `Mode: remote` and `Connected: True`, and `NAS:` shows the configured path and `ok`, restart the existing Tkinter dashboard (reboot the Pi if it already autostarts):
+Expected: `Mode: remote`, `Connected: True`, and two entries corresponding to your NAS drives.
+
+Restart the native dashboard to load its new **three-page** display. If it already autostarts after the Pi desktop login, the simplest method is:
 
 ```bash
 sudo reboot
 ```
 
-In **page 1**, CPU, RAM, the Ubuntu root **DISK** and temperature stay unchanged. The additional bottom strip shows **NAS STORAGE**, the percentage used and used/total sizes. No Pi agent configuration is needed.
+Your pages will now rotate as follows (default every 12 seconds):
 
-## If it shows unexpected data
+1. **System Overview** — Ubuntu Server CPU, RAM, root disk, temperature and uptime.
+2. **Network & Services** — Pi health, network totals, server connection, optional TCP checks.
+3. **NAS Storage** — Drive 1 and Drive 2, each with its own used percentage, capacity and mount warning.
 
-- **NAS STORAGE UNAVAILABLE:** check the exact directory and whether the NAS disk is mounted (`findmnt -T PATH`). A missing disk will not silently be counted as the system disk.
-- **NAS ON SYSTEM DISK:** the configured directory is on the same filesystem as Ubuntu's `/`. If you meant a separate drive, verify its mount before relying on the display. This warning is intentional.
-- **No NAS strip on the Pi:** ensure the Ubuntu agent is updated, `NAS_STORAGE_PATH` is set in *Ubuntu's* `.env`, its agent was restarted, and the Pi's NodeWatch code has been updated and restarted.
-- **Server OFFLINE:** this is a connectivity/agent issue, not an NAS metric. Confirm Server Mode first.
-- **Usage appears bigger than Samba files:** filesystem usage includes *all* files on the volume, metadata and reserved capacity — not just the size of a single shared folder.
-- **Share on the root filesystem:** the system and NAS measurements may legitimately match; NodeWatch marks this explicitly.
+Tap the screen or use Left/Right arrow keys to switch pages manually.
 
-To disable the NAS strip, remove or clear `NAS_STORAGE_PATH` **on Ubuntu**, restart `server-agent` and let the Pi refresh. No other settings need to change.
+## Warning states and troubleshooting
+
+- **Drive reports OK:** the configured directory is on a filesystem other than Ubuntu's root (`/`), and disk usage was readable.
+- **MOUNT MISSING / SYSTEM DISK:** the configured NAS directory is now on the same filesystem as `/`. This often means the NAS drive isn't mounted, even though the directory still exists. NodeWatch deliberately **doesn't show root disk figures as NAS capacity**. Confirm with `findmnt -T /srv/nas/drive1` or `/srv/nas/drive2`.
+- **UNAVAILABLE:** the configured directory is missing, inaccessible or invalid. Confirm that the directory exists and the `server-agent` service user can access it.
+- **NAS CONFIG / invalid:** `NAS_STORAGE_PATHS` must be a correctly quoted JSON array with **one or two** objects, each containing a `name` and an absolute `path`; avoid duplicate `.env` keys.
+- **No third page:** set `NAS_STORAGE_PATHS` on **Ubuntu Server**, not the Pi. Update both Git checkouts, restart `server-agent`, verify the Pi receives `nas_volumes`, then restart the Pi's Tkinter process.
+- **Server OFFLINE:** verify the server agent/network first using the [Server Mode connection test](SERVER_MODE.md#4-check-the-connection).
+- **Storage doesn't match individual Samba folder size:** the meter reads all usage on the filesystem, including files outside a particular share.
+
+To return to the old single-drive display, clear `NAS_STORAGE_PATHS` and optionally use `NAS_STORAGE_PATH=/srv/nas/drive1` on Ubuntu. To disable NAS monitoring entirely, clear both settings and restart the Ubuntu agent. Pi and Server Mode otherwise continue working.
+
+This does **not** change Samba, disks, mount settings, existing files or the Pi's system autostart.

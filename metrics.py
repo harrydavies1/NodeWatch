@@ -1,5 +1,6 @@
 """Host telemetry shared by the Raspberry Pi dashboard and optional server agent."""
 
+import json
 import os
 import platform
 import socket
@@ -30,13 +31,14 @@ def local_ipv4():
     return "Unavailable"
 
 
-def nas_storage_snapshot():
+def nas_storage_snapshot(path=None):
     """Inspect the filesystem backing the configured local Samba storage directory.
 
     When a separate disk is unmounted, don't silently report the root disk
     as if it were the NAS volume.
     """
-    path = os.environ.get("NAS_STORAGE_PATH", "").strip()
+    path = os.environ.get("NAS_STORAGE_PATH", "") if path is None else path
+    path = path.strip() if isinstance(path, str) else ""
     if not path:
         return None
     result = {"path": path, "status": "unavailable"}
@@ -61,6 +63,41 @@ def nas_storage_snapshot():
     }
 
 
+
+def nas_volumes_snapshot():
+    """Return at most two independent NAS filesystems for the small Pi screen.
+
+    Bad configuration is visible as a warning, not as a fake healthy drive.
+    The historical single NAS_STORAGE_PATH setting remains supported.
+    """
+    raw = os.environ.get("NAS_STORAGE_PATHS", "").strip()
+    if not raw:
+        return []
+    try:
+        entries = json.loads(raw)
+    except (TypeError, ValueError):
+        entries = None
+    if not isinstance(entries, list) or not 1 <= len(entries) <= 2:
+        return [{"name": "NAS CONFIG", "path": "", "status": "invalid"}]
+
+    result = []
+    for index, item in enumerate(entries, 1):
+        if not isinstance(item, dict):
+            return [{"name": "NAS CONFIG", "path": "", "status": "invalid"}]
+        name, path = item.get("name"), item.get("path")
+        if not isinstance(name, str) or not name.strip() or len(name) > 32:
+            name = f"NAS Drive {index}"
+        if not isinstance(path, str) or not path.startswith("/") or len(path) > 255:
+            result.append({"name": name, "path": str(path)[:120],
+                           "status": "invalid"})
+            continue
+        stats = nas_storage_snapshot(path)
+        if stats is None:
+            stats = {"path": path, "status": "invalid"}
+        result.append({"name": name, **stats})
+    return result
+
+
 def snapshot():
     """Return safe, numeric current-host stats. Does not expose secrets."""
     disk = psutil.disk_usage("/")
@@ -81,6 +118,7 @@ def snapshot():
         "disk_used": int(disk.used),
         "disk_total": int(disk.total),
         "nas_storage": nas_storage_snapshot(),
+        "nas_volumes": nas_volumes_snapshot(),
         "temperature_c": cpu_temperature(),
         "uptime_seconds": max(0, int(time.time() - boot)),
         "net_sent": int(network.bytes_sent),
