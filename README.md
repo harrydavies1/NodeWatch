@@ -1,5 +1,7 @@
 # NodeWatch — Raspberry Pi monitoring dashboard
 
+**Latest stable release: [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0)** · [Changelog](CHANGELOG.md) · [What's new since v0.1.0 beta](releases/v1.0.0.md)
+
 **NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two live telemetry pages (or **three** when multi-drive NAS monitoring is enabled) and **does not need a web browser**. Automatic page rotation is optional.
 
 ## Hardware used
@@ -7,9 +9,9 @@
 - **Raspberry Pi display:** Raspberry Pi 3 Model B (Pi 3B) with a **3.5-inch OSOYOO SPI RPi Display V1.0**.
 - **Server hardware:** A basic **Dell OptiPlex** desktop running **Ubuntu Server**.
 
-**Testing status:** The native Tkinter dashboard and Server Mode were confirmed working between the Raspberry Pi 3B with OSOYOO screen and the Ubuntu Server Dell OptiPlex. The new two-drive NAS page has automated tests but still needs a real-display check after updating both devices.
+**Testing status:** Pi Mode, the native 3.5-inch Tkinter display and end-to-end Server Mode with Ubuntu Server on a Dell OptiPlex have been tested on real hardware. The Ubuntu agent and NAS drive paths have also been tested on the OptiPlex. The optional multi-drive screen has automated tests; compatibility with every SPI display and operating-system configuration is not guaranteed.
 
-There are **two monitoring modes**. The same Tkinter dashboard works in either one; both have now been tested with the Pi and OptiPlex. Optional dual-NAS display has automated checks but awaits verification on the real screen.
+There are **two monitoring modes**. The same Tkinter dashboard works in either one; both have now been tested with the Pi and OptiPlex. Dual-NAS monitoring is opt-in and covered by automated tests.
 
 | Mode | What NodeWatch monitors | Requires another machine? |
 | --- | --- | --- |
@@ -63,6 +65,7 @@ SERVER_NAME="Ubuntu Home Server"
 REMOTE_AGENT_URL=http://YOUR_SERVER_LAN_IP:8766
 REMOTE_AGENT_TOKEN=YOUR_MATCHING_AGENT_TOKEN
 REFRESH_SECONDS=5
+AUTO_ROTATE_PAGES=true
 ROTATE_SECONDS=12
 SERVICES_JSON='[]'
 ```
@@ -197,7 +200,7 @@ For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERV
 
 ## Project structure
 
-- `python-display/native_dashboard.py` — two-page Tkinter dashboard
+- `python-display/native_dashboard.py` — native Tkinter dashboard with two pages, or an optional third NAS-storage page
 - `python-display/start-native.sh` — native display launcher
 - `python-display/autostart.sh` — optional desktop startup enable/disable helper
 - `dashboard.py` — **telemetry collection only** for Pi Mode and Server Mode (no browser server)
