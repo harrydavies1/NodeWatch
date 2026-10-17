@@ -54,7 +54,8 @@ class DashboardTests(unittest.TestCase):
     def test_nas_on_separate_filesystem(self):
         from metrics import nas_storage_snapshot
         from types import SimpleNamespace
-        with patch.dict(os.environ, {"NAS_STORAGE_PATH": "/mnt/drive/share"}), (
+        with (
+            patch.dict(os.environ, {"NAS_STORAGE_PATH": "/mnt/drive/share"}),
             patch("metrics.os.stat", side_effect=[
                 SimpleNamespace(st_dev=200),
                 SimpleNamespace(st_dev=100),
