@@ -27,6 +27,14 @@ class NativeHelpersTests(unittest.TestCase):
     def test_strip_control_chars(self):
         self.assertEqual(safe_text("Pi\nDisplay"), "PiDisplay")
 
+    def test_auto_rotation_enabled_and_disabled(self):
+        from ui_helpers import auto_rotate_due
+        self.assertTrue(auto_rotate_due({"auto_rotate_pages": True, "rotate_seconds": 8}, 8))
+        self.assertFalse(auto_rotate_due({"auto_rotate_pages": True, "rotate_seconds": 8}, 7))
+        self.assertFalse(auto_rotate_due({"auto_rotate_pages": False, "rotate_seconds": 8}, 10000))
+        self.assertTrue(auto_rotate_due({"rotate_seconds": 8}, 9))
+        self.assertFalse(auto_rotate_due({"auto_rotate_pages": False}, 10000))
+
     def test_storage_page_only_for_remote_multi_nas(self):
         from ui_helpers import page_count_for_state, nas_volumes_for_state
         self.assertEqual(page_count_for_state(None), 2)

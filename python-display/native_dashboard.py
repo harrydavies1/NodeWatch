@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from dashboard import collect_state  # noqa: E402  (also loads the root .env file)
 from ui_helpers import (  # noqa: E402
+    auto_rotate_due,
     readable_percent,
     readable_size,
     readable_uptime,
@@ -112,12 +113,7 @@ class Dashboard:
                 self.problem = new_error or "Unable to read metrics"
         self.page %= page_count_for_state(self.state)
         settings = (self.state or {}).get("settings", {})
-        seconds = settings.get("rotate_seconds", 12)
-        try:
-            seconds = max(4, min(120, int(seconds)))
-        except (ValueError, TypeError):
-            seconds = 12
-        if time.monotonic() - self.last_change >= seconds:
+        if auto_rotate_due(settings, time.monotonic() - self.last_change):
             self.change_page(1)
         self.draw()
         self.root.after(500, self.poll)

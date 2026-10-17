@@ -78,13 +78,13 @@ Restart the native dashboard to load its new **three-page** display. If it alrea
 sudo reboot
 ```
 
-Your pages will now rotate as follows (default every 12 seconds):
+Your available pages are (automatic switching defaults to every 12 seconds, but you can stop it using `AUTO_ROTATE_PAGES=false` in the Pi's `.env`):
 
 1. **System Overview** — Ubuntu Server CPU, RAM, root disk, temperature and uptime.
 2. **Network & Services** — Pi health, network totals, server connection, optional TCP checks.
 3. **NAS Storage** — Drive 1 and Drive 2, each with its own used percentage, capacity and mount warning.
 
-Tap the screen or use Left/Right arrow keys to switch pages manually.
+Tap the screen or use Left/Right arrow keys to switch pages manually. With `AUTO_ROTATE_PAGES=false`, NodeWatch stays on the chosen NAS page while still refreshing the readings. Set `AUTO_ROTATE_PAGES=true` to resume cycling every `ROTATE_SECONDS` (for example, 8 seconds). Restart the Pi's dashboard after changing this setting; no Ubuntu agent restart is required.
 
 ## Warning states and troubleshooting
 

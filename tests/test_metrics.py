@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from dashboard import env_int, service_configs
+from dashboard import env_bool, env_int, service_configs
 from metrics import snapshot
 
 
@@ -19,6 +19,18 @@ class DashboardTests(unittest.TestCase):
             self.assertEqual(env_int("ROTATE_SECONDS", 12, 4, 120), 120)
         with patch.dict(os.environ, {"ROTATE_SECONDS": "banana"}):
             self.assertEqual(env_int("ROTATE_SECONDS", 12, 4, 120), 12)
+
+    def test_auto_rotate_config_on_and_off(self):
+        for value in ("false", "OFF", "no", "0"):
+            with self.subTest(value=value), patch.dict(os.environ, {"AUTO_ROTATE_PAGES": value}):
+                self.assertFalse(env_bool("AUTO_ROTATE_PAGES"))
+        for value in ("true", "ON", "yes", "1"):
+            with self.subTest(value=value), patch.dict(os.environ, {"AUTO_ROTATE_PAGES": value}):
+                self.assertTrue(env_bool("AUTO_ROTATE_PAGES"))
+        with patch.dict(os.environ, {"AUTO_ROTATE_PAGES": ""}):
+            self.assertTrue(env_bool("AUTO_ROTATE_PAGES"))
+        with patch.dict(os.environ, {"AUTO_ROTATE_PAGES": "invalid"}):
+            self.assertTrue(env_bool("AUTO_ROTATE_PAGES"))
 
     def test_service_config_validation(self):
         with patch.dict(os.environ, {"SERVICES_JSON": '[{"name":"SSH","host":"localhost","port":22},{"bad":"value"}]'}):

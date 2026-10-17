@@ -22,6 +22,16 @@ def env_int(key, fallback, low, high):
         return fallback
 
 
+def env_bool(key, fallback=True):
+    """Parse a user-facing true/false setting; keep prior behavior if omitted."""
+    raw = os.environ.get(key, "").strip().lower()
+    if raw in ("true", "1", "yes", "on"):
+        return True
+    if raw in ("false", "0", "no", "off"):
+        return False
+    return fallback
+
+
 def service_configs():
     try:
         raw = json.loads(os.environ.get("SERVICES_JSON", "[]"))
@@ -114,6 +124,7 @@ def collect_state():
         "settings": {
             "refresh_seconds": env_int("REFRESH_SECONDS", 5, 2, 120),
             "rotate_seconds": env_int("ROTATE_SECONDS", 12, 4, 120),
+            "auto_rotate_pages": env_bool("AUTO_ROTATE_PAGES", True),
         },
     }
 

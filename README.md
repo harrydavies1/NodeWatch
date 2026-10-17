@@ -1,6 +1,6 @@
 # NodeWatch — Raspberry Pi monitoring dashboard
 
-**NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two automatically rotating pages of live stats (or **three** when multi-drive NAS monitoring is enabled) and **does not need a web browser**.
+**NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two live telemetry pages (or **three** when multi-drive NAS monitoring is enabled) and **does not need a web browser**. Automatic page rotation is optional.
 
 ## Hardware used
 
@@ -43,6 +43,7 @@ SERVER_NAME="Raspberry Pi"
 REMOTE_AGENT_URL=
 REMOTE_AGENT_TOKEN=
 REFRESH_SECONDS=5
+AUTO_ROTATE_PAGES=true
 ROTATE_SECONDS=12
 SERVICES_JSON='[]'
 ```
@@ -164,7 +165,7 @@ To troubleshoot an enabled startup entry, check `bash python-display/autostart.s
 | **2 — Network & Services** | Pi IP, CPU/RAM, uptime, cumulative traffic and optional TCP checks | Server connection and optional port checks **alongside** Pi IP, CPU/RAM, uptime and traffic |
 | **3 — NAS Storage (optional)** | Not shown | Two independently monitored Ubuntu NAS volumes, with usage and mount warnings when configured |
 
-Pages switch every **12 seconds** and data updates every **5 seconds** by default. Pi Mode remains two pages; the NAS page appears in Server Mode only when multi-drive data is available. Temperature appears only when an OS sensor is available; the display does not guarantee a CPU-specific sensor. The native page shows **up to three** configured TCP port checks, and those checks do not indicate whether a service or Docker container is healthy. Network upload/download values are **cumulative since boot**, not bandwidth speeds. Tap either side of the touchscreen, or use Left/Right arrows to change pages. Press Escape to exit fullscreen.
+Stats update every **5 seconds** by default. Automatic switching is configurable on the **Pi only**: `AUTO_ROTATE_PAGES=true` (default; continue switching every `ROTATE_SECONDS`, normally 12) or `AUTO_ROTATE_PAGES=false` (stay on the selected page until you navigate manually). Edit the existing key in the Pi's `.env`, then restart the Tkinter dashboard; do not change Ubuntu Server's agent. Pi Mode remains two pages; the NAS page appears in Server Mode only when multi-drive data is available. Temperature appears only when an OS sensor is available; the display does not guarantee a CPU-specific sensor. The native page shows **up to three** configured TCP port checks, and those checks do not indicate whether a service or Docker container is healthy. Network upload/download values are **cumulative since boot**, not bandwidth speeds. Tap either side of the touchscreen, or use Left/Right arrows to change pages. Press Escape to exit fullscreen.
 
 ## Check which monitoring mode is running
 

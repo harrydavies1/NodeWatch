@@ -57,10 +57,10 @@ If you want NodeWatch to open when the Pi graphical desktop logs in, run `bash p
 
 ## Controls and settings
 
-- Stats refresh every 5 seconds; pages alternate every 12 seconds by default. A third page for up to two NAS filesystems appears only in Server Mode when `NAS_STORAGE_PATHS` is configured on the Ubuntu Server; see [NAS Storage](../docs/NAS_STORAGE.md).
+- Stats refresh every 5 seconds by default. Automatic rotation is controlled by `AUTO_ROTATE_PAGES` in the **Pi's** `.env`. The default `true` keeps rotating every `ROTATE_SECONDS` (12 seconds unless changed); `false` stops automatic page changes, without stopping live metric refresh. A third page for up to two NAS filesystems appears only in Server Mode when `NAS_STORAGE_PATHS` is configured on the Ubuntu Server; see [NAS Storage](../docs/NAS_STORAGE.md).
 - Tap left/right side of screen or press Left/Right arrow keys to navigate.
 - Press Escape to leave fullscreen.
-- Adjust `REFRESH_SECONDS` and `ROTATE_SECONDS` in the Pi's `.env` and restart.
+- Adjust `REFRESH_SECONDS`, `AUTO_ROTATE_PAGES` and `ROTATE_SECONDS` in the Pi's `.env` and restart. Setting `AUTO_ROTATE_PAGES=false` disables timed switching; touch/keyboard navigation still works. `ROTATE_SECONDS` only takes effect when rotation is enabled.
 - Optional `SERVICES_JSON` checks TCP port reachability (up to three displayed), not application/process/Docker health. Network totals are cumulative since boot.
 
 ## Troubleshooting

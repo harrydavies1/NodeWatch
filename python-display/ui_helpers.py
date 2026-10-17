@@ -59,3 +59,17 @@ def nas_volumes_for_state(state):
 def page_count_for_state(state):
     """Existing two-page experience stays unchanged until multi-NAS is set."""
     return 3 if nas_volumes_for_state(state) else 2
+
+
+def auto_rotate_due(settings, elapsed_seconds):
+    """Whether the dashboard should advance without user input.
+
+    Older installations without AUTO_ROTATE_PAGES retain automatic rotation.
+    """
+    if not isinstance(settings, dict) or settings.get("auto_rotate_pages", True) is not True:
+        return False
+    try:
+        seconds = max(4, min(120, int(settings.get("rotate_seconds", 12))))
+    except (ValueError, TypeError):
+        seconds = 12
+    return elapsed_seconds >= seconds
