@@ -28,6 +28,7 @@ from ui_helpers import (  # noqa: E402
     readable_size,
     readable_uptime,
     nas_volumes_for_state,
+    hdd_temperatures_for_state,
     page_count_for_state,
     safe_text,
     status_label,
@@ -208,7 +209,7 @@ class Dashboard:
             if status == "OFFLINE":
                 txt(14, 262, "Server offline: check agent and network", 10, RED)
 
-        elif self.page == 2:
+        elif self.page == 2 and nas_volumes_for_state(self.state):
             server = self.state.get("server") or {}
             status = status_label(server)
             volumes = nas_volumes_for_state(self.state)
@@ -246,6 +247,47 @@ class Dashboard:
                         txt(23, y + 54, "UNAVAILABLE — CHECK NAS PATH / MOUNT",
                             11, RED, True)
                         txt(450, y + 9, "OFFLINE", 14, RED, True, anchor="ne")
+        elif self.page >= 2:
+            server = self.state.get("server") or {}
+            drives = hdd_temperatures_for_state(self.state)
+            status = status_label(server)
+            txt(13, 44, "HDD TEMPERATURES", 17, INK, True)
+            txt(13, 69, safe_text(server.get("name"), 32), 10, MUTED)
+            txt(466, 69, status, 10, GREEN if status != "OFFLINE" else RED,
+                True, anchor="ne")
+            if status == "OFFLINE":
+                txt(240, 154, "Server offline — temperatures unavailable", 13,
+                    RED, anchor="center")
+            else:
+                for index, drive in enumerate(drives[:2]):
+                    y = 85 + index * 104
+                    panel(12, y, 468, y + 96)
+                    txt(23, y + 10, safe_text(drive.get("name"), 25, "HDD"), 12, INK, True)
+                    txt(23, y + 32, safe_text(drive.get("device"), 44), 9, MUTED)
+                    drive_status = drive.get("status")
+                    temp = drive.get("temperature_c")
+                    if drive_status == "ok" and isinstance(temp, (int, float)) and not isinstance(temp, bool):
+                        label = "HOT" if temp >= 50 else "WARM" if temp >= 45 else "NORMAL"
+                        color = RED if temp >= 50 else AMBER if temp >= 45 else GREEN
+                        txt(449, y + 9, f"{temp:.1f}°C", 23, color, True, anchor="ne")
+                        txt(23, y + 56, label + "  •  SMART temperature", 10, color, True)
+                        # A 20–60°C visual scale; advisory only, not an HDD spec limit.
+                        c.create_rectangle(23 * sx, (y + 79) * sy, 454 * sx,
+                                           (y + 86) * sy, fill=BORDER, outline="")
+                        fraction = max(0, min(1, (temp - 20) / 40))
+                        if fraction:
+                            c.create_rectangle(23 * sx, (y + 79) * sy,
+                                               (23 + 431 * fraction) * sx,
+                                               (y + 86) * sy, fill=color, outline="")
+                    elif drive_status == "standby":
+                        txt(23, y + 56, "DRIVE SLEEPING — NO WAKE-UP", 11, MUTED, True)
+                    elif drive_status == "invalid":
+                        txt(23, y + 56, "CHECK HDD_TEMP_DRIVES SETTING", 11, AMBER, True)
+                    else:
+                        txt(23, y + 56, "SMART TEMPERATURE UNAVAILABLE", 11, RED, True)
+            txt(13, 291, "Read-only SMART  •  updated at most once per minute",
+                9, MUTED)
+
         else:
             server = self.state.get("server") or {}
             pi = self.state.get("pi") or {}
