@@ -55,10 +55,12 @@ def parse_temperature(data):
     """Handle smartctl's normalised temperature field and ATA 194/190 raw values."""
     if not isinstance(data, dict):
         return None
-    value = (data.get("temperature") or {}).get("current")
+    temperature = data.get("temperature")
+    value = temperature.get("current") if isinstance(temperature, dict) else None
     if _valid_temp(value):
         return round(float(value), 1)
-    table = (data.get("ata_smart_attributes") or {}).get("table") or []
+    attributes = data.get("ata_smart_attributes")
+    table = attributes.get("table", []) if isinstance(attributes, dict) else []
     if not isinstance(table, list):
         return None
     for attr_id in (194, 190):
@@ -90,7 +92,8 @@ def _read_temperature(device):
     if not isinstance(data, dict):
         return {"status": "unavailable"}
     mode = str(data.get("power_mode", "")).lower()
-    messages = data.get("smartctl", {}).get("messages", [])
+    smartctl = data.get("smartctl")
+    messages = smartctl.get("messages", []) if isinstance(smartctl, dict) else []
     if not isinstance(messages, list):
         messages = []
     detail = " ".join(str(m.get("string", "")) for m in messages if isinstance(m, dict)).lower()
