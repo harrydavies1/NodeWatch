@@ -105,6 +105,70 @@ git pull --ff-only
 
 Restart the native Tkinter dashboard (reboot the Pi if it auto-launches at desktop login). Your configured HDDs appear on their own page. Swipe/tap left/right or press arrow keys to move between pages. `AUTO_ROTATE_PAGES=false` still disables automatic page changes and `ROTATE_SECONDS` still controls the optional rotation interval.
 
+## Troubleshooting case: updated the Pi but still only see three pages
+
+**Reported during the v1.1.0 setup:** After installing the latest NodeWatch code on the Raspberry Pi, the touchscreen still showed the original **three pages** instead of a fourth HDD-temperature page. We diagnosed this by checking what the **Pi receives from the Ubuntu Server agent**; the user subsequently confirmed the fourth page working.
+
+**Key point:** Updating the **Pi display code alone does not enable the extra page**. The remote Ubuntu agent must also run the new code, have `HDD_TEMP_DRIVES` configured **on Ubuntu**, and be restarted. The Pi dashboard must then be restarted to use the updated code. The exact missing step in the reported installation was not isolated, so check each stage rather than assuming a particular cause.
+
+### A. Inspect the Pi's live response
+
+On the **Raspberry Pi**, run **only this valid diagnostic command**:
+
+```bash
+cd ~/pi-server-dashboard
+.venv/bin/python -c 'from dashboard import collect_state; s=collect_state(); print("Connected:",s["server"]["connected"]); print("HDD temperatures:",(s["server"]["stats"] or {}).get("hdd_temperatures"))'
+```
+
+| Output | Meaning | Action |
+| --- | --- | --- |
+| `Connected: False` | Agent connection failed; server data is unavailable | Check `server-agent`, Pi `REMOTE_AGENT_URL` and matching tokens |
+| `HDD temperatures: None` | No `hdd_temperatures` field in the response (or no remote stats) | Update and restart the **Ubuntu** agent, then recheck |
+| `HDD temperatures: []` | New agent is responding but HDD monitoring has no configured drives | Add `HDD_TEMP_DRIVES` to the **Ubuntu** `.env`, then restart the agent |
+| `HDD temperatures: [{...}, {...}]` | Two configured HDD entries are arriving | Restart the **Pi** display; check page navigation and the optional NAS page |
+
+A non-empty drive list creates the temperature page even if a drive's `status` is `unavailable` or `invalid`: permissions affect the *readings*, not whether the page exists.
+
+### B. Update and verify the Ubuntu agent
+
+On **Ubuntu Server** (`harry@homeserver` in the reference setup):
+
+```bash
+cd ~/pi-server-dashboard
+git pull --ff-only
+nano .env
+```
+
+Ensure `HDD_TEMP_DRIVES` exists **in Ubuntu's `.env`**, not just on the Pi. Use the correct whole-disk paths, with no duplicate setting lines. Confirm the restricted sudoers rule from Step 3 above is present when you expect temperatures.
+
+```bash
+.venv/bin/python -c 'from dotenv import load_dotenv; load_dotenv(".env"); from metrics import snapshot; print(snapshot()["hdd_temperatures"])'
+sudo systemctl restart server-agent
+sudo systemctl status server-agent --no-pager
+```
+
+If the local agent snapshot prints two drive entries, the Ubuntu configuration is being read. An `unavailable` state means troubleshoot SMART permissions or drive connectivity; it should **not** remove the page.
+
+### C. Refresh the Raspberry Pi code and screen
+
+On the **Raspberry Pi**:
+
+```bash
+cd ~/pi-server-dashboard
+git pull --ff-only
+.venv/bin/python -c 'from dashboard import collect_state; s=collect_state(); print((s["server"]["stats"] or {}).get("hdd_temperatures"))'
+```
+
+Restart the Tkinter application, or reboot the Pi if NodeWatch is launched automatically at desktop login:
+
+```bash
+sudo reboot
+```
+
+With both `NAS_STORAGE_PATHS` **and** `HDD_TEMP_DRIVES` configured on Ubuntu, the four pages are **System Overview → Network & Services → NAS Storage → HDD Temperatures**. Without `NAS_STORAGE_PATHS`, HDD Temperatures is the **third** page. You can tap the left/right sides of the screen or use arrow keys to navigate. `AUTO_ROTATE_PAGES=false` stops automatic cycling, but does **not** hide the page.
+
+---
+
 ## Troubleshooting and removal
 
 - **Temperature page missing:** `HDD_TEMP_DRIVES` must be set **on Ubuntu**, both checkouts must be updated, and both processes restarted. Confirm the agent sends a non-empty `hdd_temperatures` list.
