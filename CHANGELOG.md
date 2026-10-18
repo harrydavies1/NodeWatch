@@ -2,6 +2,13 @@
 
 Notable changes to NodeWatch. Versions follow GitHub release tags.
 
+## [Unreleased]
+
+- Added opt-in SMART HDD temperature monitoring in Server Mode with a dedicated fourth 480×320 page when the two-drive NAS usage page is enabled (otherwise a third page).
+- Added 60-second SMART query caching, no-spin-up standby checks, explicit missing-disk/permission warnings, and advisory warm/hot indicators.
+- Documented least-privilege sudoers access for read-only `smartctl` operations, stable `/dev/disk/by-id/` paths for disk replacement, and safe deployment to Ubuntu Server and Raspberry Pi.
+- Preserved existing Pi/Server modes, two-drive NAS usage, manual navigation and optional auto-rotation; added automated tests.
+
 ## [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0) — 2026-10-17
 
 **First stable release**, following the [v0.1.0 beta](https://github.com/harrydavies1/NodeWatch/releases/tag/v0.1.0).
