@@ -1,6 +1,6 @@
 # NodeWatch — Raspberry Pi monitoring dashboard
 
-**Latest stable release: [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0)** · [Changelog](CHANGELOG.md) · [What's new since v0.1.0 beta](releases/v1.0.0.md)
+**Latest stable release: [v1.1.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.0)** · [Changelog](CHANGELOG.md) · [What's new since v1.0.0](releases/v1.1.0.md)
 
 **NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two live telemetry pages, an optional third NAS storage page, and an optional **fourth HDD temperature page**. It **does not need a web browser**. Automatic page rotation is optional.
 
@@ -109,6 +109,8 @@ Device names can change after a reboot or replacement. Stable `/dev/disk/by-id/`
 
 [Set up the HDD temperature page safely →](docs/HDD_TEMPERATURES.md)
 
+**Only three pages after updating the Pi?** The fourth page appears only after **Ubuntu Server's** agent sends the `hdd_temperatures` list. Pull the updated code on **both machines**, set `HDD_TEMP_DRIVES` in **Ubuntu Server's** `.env`, restart `server-agent`, and restart the Pi dashboard. Use the [step-by-step live-data troubleshooting guide](docs/HDD_TEMPERATURES.md#troubleshooting-case-updated-the-pi-but-still-only-see-three-pages) to distinguish an old agent (`None`), missing configuration (`[]`) and data arriving correctly (a list).
+
 ## Optional: start the Ubuntu Server metrics agent on boot
 
 For **Server Mode**, the Ubuntu Server can start its read-only agent automatically whenever Ubuntu boots — no login or desktop is needed. After completing [Server Mode setup](docs/SERVER_MODE.md), stop any manually running agent, then on the **Ubuntu Server** run:
@@ -181,6 +183,7 @@ To troubleshoot an enabled startup entry, check `bash python-display/autostart.s
 | **1 — System Overview** | Local Pi CPU, RAM, root disk, temperature, hostname, uptime | Ubuntu Server CPU, RAM, root disk, temperature, hostname, uptime; optional legacy single-NAS strip |
 | **2 — Network & Services** | Pi IP, CPU/RAM, uptime, cumulative traffic and optional TCP checks | Server connection and optional port checks **alongside** Pi IP, CPU/RAM, uptime and traffic |
 | **3 — NAS Storage (optional)** | Not shown | Two independently monitored Ubuntu NAS volumes, with usage and mount warnings when configured |
+| **4 — HDD Temperatures (optional)** | Not shown | SMART temperatures for up to two server HDDs, with standby/unavailable warnings; shown as **page 3** if NAS Storage is not configured |
 
 Stats update every **5 seconds** by default. Automatic switching is configurable on the **Pi only**: `AUTO_ROTATE_PAGES=true` (default; continue switching every `ROTATE_SECONDS`, normally 12) or `AUTO_ROTATE_PAGES=false` (stay on the selected page until you navigate manually). Edit the existing key in the Pi's `.env`, then restart the Tkinter dashboard; do not change Ubuntu Server's agent. Pi Mode remains two pages; the NAS page appears in Server Mode only when multi-drive data is available. Temperature appears only when an OS sensor is available; the display does not guarantee a CPU-specific sensor. The native page shows **up to three** configured TCP port checks, and those checks do not indicate whether a service or Docker container is healthy. Network upload/download values are **cumulative since boot**, not bandwidth speeds. Tap either side of the touchscreen, or use Left/Right arrows to change pages. Press Escape to exit fullscreen.
 
@@ -205,7 +208,8 @@ cd ~/pi-server-dashboard
 | Still seeing Pi stats instead of Ubuntu Server | Ensure `REMOTE_AGENT_URL` is **not empty**, and that you edited the **Pi's** `.env` (not only the server's). Restart NodeWatch. |
 | Server shows OFFLINE | Check that `agent.py` is running on Ubuntu Server, the Pi can reach the server's IP and port 8766, and both machines use matching tokens. |
 | Agent replies `401 Unauthorized` | The Pi's `REMOTE_AGENT_TOKEN` must match Ubuntu Server's `AGENT_TOKEN` exactly. |
-| No temperature reading | The operating system may not expose a supported sensor; NodeWatch displays a dash rather than inventing a reading. |
+| No temperature reading | The operating system may not expose a supported CPU sensor; NodeWatch displays a dash rather than inventing a reading. HDD SMART temperatures have separate setup steps. |
+| Updated Pi but still only three pages | **Ubuntu Server** must run the updated agent and have `HDD_TEMP_DRIVES` set in its own `.env`. Restart `server-agent`; on the Pi, inspect `hdd_temperatures` with the [diagnostic command](docs/HDD_TEMPERATURES.md#troubleshooting-case-updated-the-pi-but-still-only-see-three-pages), update the Pi code, and restart Tkinter. |
 | No service checks | Add entries to `SERVICES_JSON` or leave it as `'[]'` to disable checks. Only the first three checks are shown on the native page; checks are TCP reachability probes, not full service or Docker health. |
 | Changes to `.env` don't show | Restart the Tkinter dashboard; configuration is read when the application starts. Don't append duplicate `REMOTE_AGENT_URL` or token lines — edit the existing entries. |
 | Fresh clone fails | Use `https://github.com/harrydavies1/NodeWatch.git` (the public repo's current name). A plain HTTPS clone does not require an SSH key. |
@@ -214,11 +218,12 @@ For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERV
 
 ## Project structure
 
-- `python-display/native_dashboard.py` — native Tkinter dashboard with two pages, or an optional third NAS-storage page
+- `python-display/native_dashboard.py` — native Tkinter dashboard with two base pages, optional NAS storage and HDD temperature pages
 - `python-display/start-native.sh` — native display launcher
 - `python-display/autostart.sh` — optional desktop startup enable/disable helper
 - `dashboard.py` — **telemetry collection only** for Pi Mode and Server Mode (no browser server)
-- `metrics.py` — psutil CPU/RAM/disk/temperature/uptime/network snapshot, plus optional one/two NAS filesystem readings
+- `metrics.py` — psutil CPU/RAM/disk/temperature/uptime/network snapshot, optional NAS usage and HDD temperature readings
+- `hdd_temperatures.py` — read-only SMART HDD temperature collector with 60-second caching and clear failure states
 - `agent.py` and `start-agent.sh` — optional Ubuntu Server telemetry agent
 - `.env.example` — configuration template; keep your real `.env` local
 - `deploy/server-agent-autostart.sh` — optional agent startup enable/disable/status on Ubuntu Server
