@@ -7,6 +7,7 @@ import socket
 import time
 
 import psutil
+from hdd_temperatures import hdd_temperatures_snapshot
 
 
 def cpu_temperature():
@@ -119,6 +120,7 @@ def snapshot():
         "disk_total": int(disk.total),
         "nas_storage": nas_storage_snapshot(),
         "nas_volumes": nas_volumes_snapshot(),
+        "hdd_temperatures": hdd_temperatures_snapshot(),
         "temperature_c": cpu_temperature(),
         "uptime_seconds": max(0, int(time.time() - boot)),
         "net_sent": int(network.bytes_sent),
