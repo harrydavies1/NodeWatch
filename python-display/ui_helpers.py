@@ -56,9 +56,21 @@ def nas_volumes_for_state(state):
     return [item for item in volumes[:2] if isinstance(item, dict)]
 
 
+def hdd_temperatures_for_state(state):
+    """Only the remote server's explicitly configured drives are displayed."""
+    server = (state or {}).get("server") or {}
+    if server.get("mode") != "remote":
+        return []
+    stats = server.get("stats") or {}
+    drives = stats.get("hdd_temperatures")
+    if not isinstance(drives, list):
+        return []
+    return [item for item in drives[:2] if isinstance(item, dict)]
+
+
 def page_count_for_state(state):
-    """Existing two-page experience stays unchanged until multi-NAS is set."""
-    return 3 if nas_volumes_for_state(state) else 2
+    """Two base pages, plus optional NAS usage and HDD temperature pages."""
+    return 2 + bool(nas_volumes_for_state(state)) + bool(hdd_temperatures_for_state(state))
 
 
 def auto_rotate_due(settings, elapsed_seconds):
