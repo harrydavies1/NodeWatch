@@ -2,12 +2,37 @@
 
 Notable changes to NodeWatch. Versions follow GitHub release tags.
 
+## [v1.1.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.0) — 2026-10-18
+
+**HDD temperatures and deployment troubleshooting**, following [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0).
+
+### Added
+
+- **Opt-in SMART HDD temperature page:** Server Mode shows two configurable physical HDD temperatures on a dedicated 480×320 Tkinter page. It is **page 4** when the existing NAS storage page is enabled, or **page 3** without NAS storage monitoring.
+- **Read-only Ubuntu SMART collector:** `HDD_TEMP_DRIVES` configures up to two whole-disk devices on Ubuntu Server. Temperatures are read via `smartctl`, cached for 60 seconds, and reported through the existing authenticated server agent.
+- **Clear hardware states:** sleeping or unavailable HDDs, bad configuration, and advisory temperature statuses are visible rather than shown as healthy readings. Normal/warm/hot thresholds (below 45°C, 45–49.9°C, 50°C+) are **general guidance, not drive specifications**.
+- **Least-privilege SMART setup guide:** restricted read-only `sudoers` example, no root-owned agent, and stable `/dev/disk/by-id/` paths for future disk replacement.
+
+### Troubleshooting documented from the real setup
+
+- **Symptom:** Raspberry Pi was updated, but NodeWatch still displayed **only three pages**.
+- **Diagnosis:** the Pi creates the temperature page only when the **Ubuntu Server agent** supplies a non-empty `hdd_temperatures` list; updating Pi code alone does not enable it.
+- **Fix/checklist:** update both checkouts; configure `HDD_TEMP_DRIVES` on **Ubuntu Server**; verify `snapshot()["hdd_temperatures"]` locally; restart `server-agent`; check the Pi's `collect_state()` output; restart the Pi's Tkinter display. `None` indicates no temperature field, `[]` indicates an unconfigured list, and a populated list means the screen should be available.
+- **Outcome:** the user confirmed the fourth page works after troubleshooting. The single missing step was not isolated, so the guide covers the full path rather than claiming an unverified root cause.
+- Added the diagnostic command and decision table to [HDD temperature setup](docs/HDD_TEMPERATURES.md#troubleshooting-case-updated-the-pi-but-still-only-see-three-pages) and cross-linked it from the README.
+
+### Compatibility and upgrade
+
+- Pi Mode, authenticated Server Mode, existing NAS page, touchscreen/keyboard navigation, and `AUTO_ROTATE_PAGES` settings remain compatible.
+- `HDD_TEMP_DRIVES` is **optional**. Install `smartmontools` and permit the precise read-only `smartctl` commands only if enabling the feature.
+- No NAS mounts, Samba shares, Minecraft services, partitions, or user data are changed.
+- Unit and integration test coverage expanded for SMART parsing, caching, failures and optional page counts.
+
+**Full changes:** [v1.0.0...v1.1.0](https://github.com/harrydavies1/NodeWatch/compare/v1.0.0...v1.1.0)
+
 ## [Unreleased]
 
-- Added opt-in SMART HDD temperature monitoring in Server Mode with a dedicated fourth 480×320 page when the two-drive NAS usage page is enabled (otherwise a third page).
-- Added 60-second SMART query caching, no-spin-up standby checks, explicit missing-disk/permission warnings, and advisory warm/hot indicators.
-- Documented least-privilege sudoers access for read-only `smartctl` operations, stable `/dev/disk/by-id/` paths for disk replacement, and safe deployment to Ubuntu Server and Raspberry Pi.
-- Preserved existing Pi/Server modes, two-drive NAS usage, manual navigation and optional auto-rotation; added automated tests.
+No unreleased changes yet.
 
 ## [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0) — 2026-10-17
 
