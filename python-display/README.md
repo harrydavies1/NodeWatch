@@ -69,5 +69,6 @@ If you want NodeWatch to open when the Pi graphical desktop logs in, run `bash p
 - **Page 1 still shows Pi stats:** `REMOTE_AGENT_URL` is empty; configure Server Mode using the guide.
 - **Remote server OFFLINE:** check the agent, server IP/port and matching tokens; the Pi's local stats still work.
 - **Missing temperature:** the platform may not expose sensors; unavailable readings appear as a dash.
+- **Only three pages after a Pi update:** the HDD page requires a non-empty `hdd_temperatures` list from the **Ubuntu Server** agent. Set `HDD_TEMP_DRIVES` on **Ubuntu**, update both checkouts, restart `server-agent` on Ubuntu and the Tkinter display on the Pi. Use the [live data diagnostic and outcome table](../docs/HDD_TEMPERATURES.md#troubleshooting-case-updated-the-pi-but-still-only-see-three-pages) to distinguish `None`, `[]`, and configured drives.
 
 See also the main [Troubleshooting section](../README.md#troubleshooting).
