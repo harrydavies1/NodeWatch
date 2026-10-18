@@ -2,7 +2,7 @@
 
 **Latest stable release: [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0)** · [Changelog](CHANGELOG.md) · [What's new since v0.1.0 beta](releases/v1.0.0.md)
 
-**NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two live telemetry pages (or **three** when multi-drive NAS monitoring is enabled) and **does not need a web browser**. Automatic page rotation is optional.
+**NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two live telemetry pages, an optional third NAS storage page, and an optional **fourth HDD temperature page**. It **does not need a web browser**. Automatic page rotation is optional.
 
 ## Hardware used
 
@@ -94,6 +94,20 @@ These are the confirmed Samba mount paths for the Dell OptiPlex build. Keep the 
 Pull the latest code and restart the agent on **Ubuntu Server**, then pull on the **Pi**, verify `nas_volumes` is arriving and restart its Tkinter dashboard. The monitoring code will show **MOUNT MISSING / SYSTEM DISK** or **UNAVAILABLE** instead of reporting a missing NAS disk as healthy. Existing Pi Mode and older single-drive monitoring remain supported.
 
 [Step-by-step two-drive setup and troubleshooting →](docs/NAS_STORAGE.md)
+
+## Optional: HDD temperatures on page 4
+
+In Server Mode, NodeWatch can also show the SMART temperatures of up to two HDDs on a **dedicated fourth page** (when the NAS storage page is enabled; otherwise it is page 3). The readings come from the **Ubuntu Server** via `smartctl`, are cached for 60 seconds and show a warning if a disk is sleeping, missing or unreadable. The feature is opt-in and never changes disks or fan settings.
+
+Add `HDD_TEMP_DRIVES` to **Ubuntu Server's** `.env` (not the Pi's):
+
+```ini
+HDD_TEMP_DRIVES='[{"name":"NAS Drive 1","device":"/dev/sdb"},{"name":"NAS Drive 2","device":"/dev/sdc"}]'
+```
+
+Device names can change after a reboot or replacement. Stable `/dev/disk/by-id/` names are preferred. **A restricted read-only sudoers rule is required** for the agent to read SMART data; don't run the agent as root or grant broad disk permissions. See the guide before enabling this setting.
+
+[Set up the HDD temperature page safely →](docs/HDD_TEMPERATURES.md)
 
 ## Optional: start the Ubuntu Server metrics agent on boot
 
