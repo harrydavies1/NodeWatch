@@ -9,7 +9,7 @@
 - **Raspberry Pi display:** Raspberry Pi 3 Model B (Pi 3B) with a **3.5-inch OSOYOO SPI RPi Display V1.0**.
 - **Server hardware:** A basic **Dell OptiPlex** desktop running **Ubuntu Server**.
 
-**Testing status:** Pi Mode, the native 3.5-inch Tkinter display and end-to-end Server Mode with Ubuntu Server on a Dell OptiPlex have been tested on real hardware. The Ubuntu agent and NAS drive paths have also been tested on the OptiPlex. The optional multi-drive screen has automated tests; compatibility with every SPI display and operating-system configuration is not guaranteed.
+**Testing status:** Pi Mode, the native 3.5-inch Tkinter display and end-to-end Server Mode with Ubuntu Server on a Dell OptiPlex have been tested on real hardware. The Ubuntu agent and NAS drive paths have also been tested on the OptiPlex. The HDD-temperature fourth page was confirmed working on the Raspberry Pi after deployment troubleshooting. NAS storage and HDD temperature functionality have automated tests; compatibility with every SPI display, drive and operating-system configuration is not guaranteed.
 
 There are **two monitoring modes**. The same Tkinter dashboard works in either one; both have now been tested with the Pi and OptiPlex. Dual-NAS monitoring is opt-in and covered by automated tests.
 
