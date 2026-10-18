@@ -1,0 +1,69 @@
+name: Publish NodeWatch v1.1.0 stable
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'releases/v1.1.0.md'
+      - '.github/workflows/publish-v1.1.0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nodewatch-publish-v1.1.0
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'harrydavies1/NodeWatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v1.1.0 source
+        uses: actions/checkout@v4
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install requirements
+        run: python -m pip install -r requirements.txt
+      - name: Validate Python and shell syntax
+        run: |
+          python -m compileall -q dashboard.py agent.py metrics.py hdd_temperatures.py python-display deploy tests
+          bash -n python-display/start-native.sh python-display/autostart.sh python-display/autostart-launch.sh start-agent.sh deploy/server-agent-autostart.sh
+      - name: Run NodeWatch automated tests
+        run: python -m unittest discover -s tests -v
+      - name: Confirm release documentation exists
+        run: |
+          test -s releases/v1.1.0.md
+          test -s docs/HDD_TEMPERATURES.md
+          test -s CHANGELOG.md
+
+  publish:
+    needs: verify
+    if: github.repository == 'harrydavies1/NodeWatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout verified release source
+        uses: actions/checkout@v4
+      - name: Publish v1.1.0 release (never overwrite)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view v1.1.0 >/dev/null 2>&1; then
+            echo "v1.1.0 already released; leaving it unchanged."
+            exit 0
+          fi
+          if git ls-remote --tags origin refs/tags/v1.1.0 | grep -q 'refs/tags/v1.1.0'; then
+            echo "Tag v1.1.0 exists without a release; refusing to publish unexpected tag."
+            exit 1
+          fi
+          gh release create v1.1.0 \
+            --target "$GITHUB_SHA" \
+            --title "NodeWatch v1.1.0 — HDD Temperature Monitoring" \
+            --notes-file releases/v1.1.0.md \
+            --latest
