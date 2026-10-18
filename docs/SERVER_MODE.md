@@ -110,6 +110,12 @@ NodeWatch can show **two separate NAS filesystems** on an optional **third page*
 
 [Step-by-step NAS storage setup →](NAS_STORAGE.md)
 
+### Optional: add SMART HDD temperatures
+
+Set `HDD_TEMP_DRIVES` on **Ubuntu Server** and allow only narrowly scoped read-only `smartctl` commands for the agent user. This adds an HDD temperature screen (**page 4** when the optional NAS usage page is enabled), showing temperatures or explicit warnings if a disk is sleeping or unavailable. This is independent of NAS filesystem usage and does not change Samba or the drives.
+
+[Step-by-step HDD temperature setup →](HDD_TEMPERATURES.md)
+
 ## 3. Restart the Tkinter display on the Pi
 
 If running manually, stop it with Ctrl+C and restart from the Pi's graphical desktop:
