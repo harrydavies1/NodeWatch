@@ -9,6 +9,8 @@ Your example hardware is a Dell OptiPlex with Ubuntu Server and two separate ext
 | NAS Drive 1 | `/srv/nas/drive1` | `/srv/nas/drive1` |
 | NAS Drive 2 | `/srv/nas/drive2` | `/srv/nas/drive2` |
 
+You can optionally add a fourth page with actual HDD SMART temperature readings using [HDD Temperature monitoring](HDD_TEMPERATURES.md). This is a separate setting and requires restricted read-only smartctl access on Ubuntu Server.
+
 The original **DISK** tile on page 1 still measures Ubuntu's system filesystem (`/`). The **NAS STORAGE** page separately shows each configured volume's percentage used, used/total space, free space and mount-health warnings. The network page still shows the Pi's health.
 
 **This is filesystem capacity monitoring, not Samba traffic, client connections, drive SMART health or individual folder sizes.** An unmounted disk is flagged instead of reporting the Ubuntu system filesystem as NAS capacity.
