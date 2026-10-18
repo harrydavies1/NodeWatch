@@ -13,7 +13,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Check Python and shell syntax
         run: |
-          python -m compileall -q dashboard.py agent.py metrics.py python-display deploy tests
+          python -m compileall -q dashboard.py agent.py metrics.py hdd_temperatures.py python-display deploy tests
           bash -n python-display/start-native.sh python-display/autostart.sh python-display/autostart-launch.sh start-agent.sh deploy/server-agent-autostart.sh
       - name: Run unit and loopback agent tests
         run: python -m unittest discover -s tests -v
