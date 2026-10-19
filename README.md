@@ -1,6 +1,6 @@
 # NodeWatch — Raspberry Pi monitoring dashboard
 
-**Latest stable release: [v1.1.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.0)** · [Changelog](CHANGELOG.md) · [What's new since v1.0.0](releases/v1.1.0.md)
+**Latest stable release: [v1.1.1](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.1)** · [Changelog](CHANGELOG.md) · [What's new since v1.1.0](releases/v1.1.1.md)
 
 **NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two live telemetry pages, an optional third NAS storage page, and an optional **fourth HDD temperature page**. It **does not need a web browser**. Automatic page rotation is optional.
 
@@ -17,6 +17,23 @@ There are **two monitoring modes**. The same Tkinter dashboard works in either o
 | --- | --- | --- |
 | **[Pi Mode](docs/PI_MODE.md)** | This Raspberry Pi's CPU, RAM, disk, temperature, uptime and network | No |
 | **[Server Mode](docs/SERVER_MODE.md)** | A separate Ubuntu/Linux server, **plus** the Pi's local health | Yes, a server running `agent.py` |
+
+## Preview NodeWatch on a Mac, Windows or Linux computer (v1.1.1)
+
+Want to try the Raspberry Pi dashboard without owning the display or configuring a server? The **cross-platform GUI simulator** reuses NodeWatch's *real Tkinter interface* with clearly labelled, changing **fake data**. You can preview all four pages, click to navigate, enable timed rotation, and resize the 480×320 preview window. No `.env`, server, SSH, SMART access, network access or pip packages are required **for the simulator**.
+
+Clone the project on a computer with **Python 3 + Tkinter + a graphical desktop** and run:
+
+```bash
+git clone https://github.com/harrydavies1/NodeWatch.git
+cd NodeWatch
+python3 -m tkinter
+python3 python-display/simulate.py
+```
+
+On Windows, use `py python-display/simulate.py`. Use `--auto-rotate --rotate-seconds 8` to cycle pages or `--fullscreen` to go full screen. The simulator needs the full repository because it shares the real dashboard's rendering and helper files.
+
+[Full simulator setup, Mac/Windows/Linux instructions and CLI options →](docs/SIMULATOR.md)
 
 ## Install on the Raspberry Pi
 
@@ -219,6 +236,8 @@ For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERV
 ## Project structure
 
 - `python-display/native_dashboard.py` — native Tkinter dashboard with two base pages, optional NAS storage and HDD temperature pages
+- `python-display/simulate.py` — cross-platform GUI simulator that uses the real dashboard with fake data (Python 3 + Tkinter; no third-party packages)
+- `docs/SIMULATOR.md` — Mac, Windows and Linux simulator quick start and troubleshooting
 - `python-display/start-native.sh` — native display launcher
 - `python-display/autostart.sh` — optional desktop startup enable/disable helper
 - `dashboard.py` — **telemetry collection only** for Pi Mode and Server Mode (no browser server)
