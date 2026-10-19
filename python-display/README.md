@@ -51,6 +51,16 @@ bash python-display/start-native.sh --windowed
 
 Tkinter requires a functioning X11 or other Tk-compatible graphical session and display driver; it cannot open on a bare text-only console.
 
+## Cross-platform fake-data simulator (v1.1.1)
+
+To preview the **same native Tkinter interface** on macOS, Windows or Linux without a Pi, server, credentials or `.env`, run the new simulator from a complete NodeWatch checkout:
+
+```bash
+python3 python-display/simulate.py
+```
+
+It opens a **480×320 window with four pages** by default, showing animated **SIMULATION / FAKE DATA** metrics. The simulator needs Python 3, Tkinter and a graphical desktop, but no pip dependencies or connection to your server. Use `--auto-rotate --rotate-seconds 8`, `--fullscreen`, `--pages 3` or `--pi-mode` to preview other layouts. See [the full simulator guide](../docs/SIMULATOR.md).
+
 ## Optional autostart at desktop login
 
 If you want NodeWatch to open when the Pi graphical desktop logs in, run `bash python-display/autostart.sh enable` from the repository. To inspect or disable it, run `bash python-display/autostart.sh status` or `bash python-display/autostart.sh disable`. This is **off by default**, doesn't replace an existing startup entry, and doesn't change the Pi's graphical configuration. See [the optional autostart guide](../docs/AUTOSTART.md).
