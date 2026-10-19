@@ -21,7 +21,8 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from dashboard import collect_state  # noqa: E402  (also loads the root .env file)
+# The real telemetry collector is imported lazily by Dashboard only when needed.
+# This lets the standalone simulator reuse exactly this GUI without psutil/dotenv.
 from ui_helpers import (  # noqa: E402
     auto_rotate_due,
     readable_percent,
@@ -46,9 +47,16 @@ AMBER = "#FFD084"
 
 
 class Dashboard:
-    def __init__(self, windowed=False):
+    def __init__(self, windowed=False, collector=None, simulation=False):
+        if collector is None:
+            # Real Pi / Server Mode still reads the regular .env and metrics.
+            from dashboard import collect_state
+            collector = collect_state
+        self.collector = collector
+        self.simulation = simulation
         self.root = tk.Tk()
-        self.root.title("NodeWatch - Native Pi Display")
+        self.root.title("NodeWatch - Simulator (fake data)" if simulation
+                        else "NodeWatch - Native Pi Display")
         self.root.configure(bg=BG)
         self.root.attributes("-fullscreen", not windowed)
         if windowed:
@@ -82,7 +90,7 @@ class Dashboard:
         # Never touch Tk objects from the background worker.
         while not self.stop.is_set():
             try:
-                result = (collect_state(), None)
+                result = (self.collector(), None)
             except Exception as exc:
                 result = (None, safe_text(exc, 110))
             try:
@@ -164,6 +172,8 @@ class Dashboard:
             bar(x + 11, y + 62, 198, pct)
 
         txt(13, 9, "NODEWATCH", 13, CYAN, True)
+        if self.simulation:
+            txt(163, 12, "SIMULATION / FAKE DATA", 9, AMBER, True)
         txt(465, 10, datetime.now().strftime("%H:%M"), 12, MUTED, anchor="ne")
         c.create_line(12 * sx, 35 * sy, 468 * sx, 35 * sy, fill=BORDER)
 
