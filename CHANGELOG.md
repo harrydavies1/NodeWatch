@@ -2,6 +2,23 @@
 
 Notable changes to NodeWatch. Versions follow GitHub release tags.
 
+## [Unreleased]
+
+No unreleased changes yet.
+
+## [v1.1.1](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.1) — 2026-10-19
+
+**Small patch release:** adds an optional **cross-platform Python/Tkinter simulator** without changing the existing v1.1.0 agent protocol, NAS storage, HDD SMART monitoring or Pi display behaviour.
+
+- Added `python-display/simulate.py` to preview NodeWatch's actual four-page GUI with animated, clearly labelled **fake data** on **macOS, Windows and desktop Linux**.
+- Removed the production dashboard's hard import dependency on `dashboard.collect_state()` for GUI-only simulation by allowing a custom telemetry collector. Normal Pi/Server Mode retains the same real collector by default.
+- The simulator requires only **Python 3 and Tkinter**, not `psutil`, `python-dotenv`, credentials, network access or a server. It uses shared dashboard files from the NodeWatch repository.
+- Supports a default **480×320 window**, optional fullscreen, 2/3/4-page previews, Pi Mode, manual navigation, animated refreshes and optional automatic page rotation through CLI flags.
+- Added [Mac/Windows/Linux setup and troubleshooting](docs/SIMULATOR.md), README guidance and regression tests for simulated state, page selection, options and zero-third-party-dependency help.
+- This does **not** replace or alter live monitoring, disk configuration, SMART data, Tailscale, Samba or Minecraft.
+
+**Full changes:** [v1.1.0...v1.1.1](https://github.com/harrydavies1/NodeWatch/compare/v1.1.0...v1.1.1)
+
 ## [v1.1.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.0) — 2026-10-18
 
 **HDD temperatures and deployment troubleshooting**, following [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0).
@@ -29,10 +46,6 @@ Notable changes to NodeWatch. Versions follow GitHub release tags.
 - Unit and integration test coverage expanded for SMART parsing, caching, failures and optional page counts.
 
 **Full changes:** [v1.0.0...v1.1.0](https://github.com/harrydavies1/NodeWatch/compare/v1.0.0...v1.1.0)
-
-## [Unreleased]
-
-No unreleased changes yet.
 
 ## [v1.0.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.0.0) — 2026-10-17
 
