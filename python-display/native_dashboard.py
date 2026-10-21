@@ -61,7 +61,6 @@ class Dashboard:
         self.theme = normalize_theme(
             os.environ.get("DASHBOARD_THEME", "dark") if theme is None else theme
         )
-        self.start_menu_open = False
         self.root = tk.Tk()
         self.root.title("NodeWatch - Simulator (fake data)" if simulation
                         else "NodeWatch - Native Pi Display")
@@ -140,27 +139,13 @@ class Dashboard:
     def change_page(self, direction):
         self.page = (self.page + direction) % page_count_for_state(self.state)
         self.last_change = time.monotonic()
-        self.start_menu_open = False
         self.draw()
 
     def tap(self, event):
         if self.theme == "xp":
-            # Hit boxes are expressed in virtual 480x320 canvas coordinates.
+            # Use the same virtual 480x320 hit boxes at any display size.
             x = event.x * 480 / max(1, self.canvas.winfo_width())
             y = event.y * 320 / max(1, self.canvas.winfo_height())
-            if self.start_menu_open:
-                if 11 <= x <= 225 and 159 <= y < 159 + 29 * page_count_for_state(self.state):
-                    chosen = int((y - 159) // 29)
-                    self.page = min(chosen, page_count_for_state(self.state) - 1)
-                    self.last_change = time.monotonic()
-                self.start_menu_open = False
-                self.draw()
-                return
-            if y >= 287 and x <= 113:
-                self.start_menu_open = True
-                self.last_change = time.monotonic()
-                self.draw()
-                return
             if 12 <= y <= 34 and x >= 444:
                 self.root.destroy()
                 return
@@ -186,7 +171,7 @@ class Dashboard:
         if self.theme == "xp":
             from xp_theme import draw_xp
             draw_xp(c, self.state, self.page, width, height,
-                    simulation=self.simulation, menu_open=self.start_menu_open)
+                    simulation=self.simulation)
             return
 
         def panel(x1, y1, x2, y2):
