@@ -23,7 +23,7 @@ There are **two monitoring modes**. The same Tkinter dashboard works in either o
 NodeWatch now includes **two selectable themes** for the native Python/Tkinter interface:
 
 - **`dark` (default)** — the familiar dark NodeWatch design; existing installations remain unchanged.
-- **`xp` (optional)** — bright Windows XP-style blue title bar, green **Start** button, XP taskbar and clock, raised cream panels, retro blue progress bars and a clickable Start menu to jump between dashboard pages.
+- **`xp` (optional)** — bright Windows XP-style blue title bar, full-width blue taskbar and clock, raised cream panels and retro segmented progress bars. No Start button or pop-up menu; touchscreen and arrow-key navigation remain available.
 
 The XP look uses original Tkinter vector drawings inspired by the Windows XP era; it does **not** require Microsoft images, font downloads, a web browser or extra dependencies. **All existing monitoring pages work in both themes.**
 
@@ -45,7 +45,9 @@ For a no-server Mac demo with simulated metrics:
 python3 python-display/simulate.py --theme xp
 ```
 
-[Complete theme setup and navigation guide →](docs/THEMES.md)
+The XP layout has also been tuned for the **480×320 screen**: slightly smaller fonts and better spacing keep page-one statistics above their progress bars, and the extra text under HDD Temperatures has been removed. These changes are to the **display code only**, so your server agent does not need updating.
+
+[Complete theme setup, layout troubleshooting and navigation guide →](docs/THEMES.md)
 
 ## Preview NodeWatch on a Mac, Windows or Linux computer (v1.1.1)
 
