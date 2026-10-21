@@ -59,13 +59,16 @@ python3 python-display/simulate.py --pages 3
 # Fullscreen, fake stats updated every 5 seconds
 python3 python-display/simulate.py --fullscreen --refresh-seconds 5
 
+# Optional Windows XP Luna-inspired blue/green dashboard theme
+python3 python-display/simulate.py --theme xp
+
 # CLI help works even without Tkinter installed
 python3 python-display/simulate.py --help
 ```
 
-Flags: `--pages {2,3,4}`, `--pi-mode`, `--fullscreen`, `--auto-rotate`, `--rotate-seconds` and `--refresh-seconds`.
+Flags: `--pages {2,3,4}`, `--pi-mode`, `--fullscreen`, `--auto-rotate`, `--rotate-seconds`, `--refresh-seconds`, and `--theme {dark,xp}`. The familiar dark theme stays the default.
 
-- Click **left or right half** of the screen or use the **Left/Right arrow keys** to change pages. Space advances one page.
+- Click **left or right half** of the screen or use the **Left/Right arrow keys** to change pages. Space advances one page. With `--theme xp`, click the green **Start** button for a clickable page selection menu.
 - Press **Escape** to quit; in windowed mode, you can also close the window normally.
 - Auto-rotation is **disabled by default** for easier previews. Turn it on with `--auto-rotate`. The real Pi's setting is not changed.
 
