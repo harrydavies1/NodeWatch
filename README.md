@@ -18,6 +18,35 @@ There are **two monitoring modes**. The same Tkinter dashboard works in either o
 | **[Pi Mode](docs/PI_MODE.md)** | This Raspberry Pi's CPU, RAM, disk, temperature, uptime and network | No |
 | **[Server Mode](docs/SERVER_MODE.md)** | A separate Ubuntu/Linux server, **plus** the Pi's local health | Yes, a server running `agent.py` |
 
+## Optional Windows XP theme (Luna-style)
+
+NodeWatch now includes **two selectable themes** for the native Python/Tkinter interface:
+
+- **`dark` (default)** — the familiar dark NodeWatch design; existing installations remain unchanged.
+- **`xp` (optional)** — bright Windows XP-style blue title bar, green **Start** button, XP taskbar and clock, raised cream panels, retro blue progress bars and a clickable Start menu to jump between dashboard pages.
+
+The XP look uses original Tkinter vector drawings inspired by the Windows XP era; it does **not** require Microsoft images, font downloads, a web browser or extra dependencies. **All existing monitoring pages work in both themes.**
+
+On the **Raspberry Pi or Mac running the dashboard**, open that device's local `.env` and set:
+
+```ini
+DASHBOARD_THEME=xp
+```
+
+Restart NodeWatch. To revert, change the setting to `DASHBOARD_THEME=dark` (or remove it), then restart. The setting belongs on the display computer, **not** on the Ubuntu Server agent. You can also preview without editing `.env`:
+
+```bash
+bash python-display/start-native.sh --windowed --theme xp
+```
+
+For a no-server Mac demo with simulated metrics:
+
+```bash
+python3 python-display/simulate.py --theme xp
+```
+
+[Complete theme setup and navigation guide →](docs/THEMES.md)
+
 ## Preview NodeWatch on a Mac, Windows or Linux computer (v1.1.1)
 
 Want to try the Raspberry Pi dashboard without owning the display or configuring a server? The **cross-platform GUI simulator** reuses NodeWatch's *real Tkinter interface* with clearly labelled, changing **fake data**. You can preview all four pages, click to navigate, enable timed rotation, and resize the 480×320 preview window. No `.env`, server, SSH, SMART access, network access or pip packages are required **for the simulator**.
@@ -237,6 +266,7 @@ For detailed setup help, see [Pi Mode](docs/PI_MODE.md), [Server Mode](docs/SERV
 
 - `python-display/native_dashboard.py` — native Tkinter dashboard with two base pages, optional NAS storage and HDD temperature pages
 - `python-display/simulate.py` — cross-platform GUI simulator that uses the real dashboard with fake data (Python 3 + Tkinter; no third-party packages)
+- `python-display/xp_theme.py` — optional Luna-style Windows XP-inspired native canvas renderer (no additional dependencies)
 - `docs/SIMULATOR.md` — Mac, Windows and Linux simulator quick start and troubleshooting
 - `python-display/start-native.sh` — native display launcher
 - `python-display/autostart.sh` — optional desktop startup enable/disable helper
