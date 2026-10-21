@@ -51,6 +51,26 @@ bash python-display/start-native.sh --windowed
 
 Tkinter requires a functioning X11 or other Tk-compatible graphical session and display driver; it cannot open on a bare text-only console.
 
+## Choose the visual theme (dark or XP)
+
+The familiar **dark** style remains the default. The optional **Windows XP-inspired** style recreates Luna-era blue window chrome, a green Start button, a blue taskbar and system tray, raised panels and retro blue progress bars. The **Start** button opens a working page launcher; the other controls and navigation continue to work.
+
+To enable it, edit `.env` on the **machine displaying NodeWatch** (Raspberry Pi or desktop Mac/Linux):
+
+```ini
+DASHBOARD_THEME=xp
+```
+
+Restart the Tkinter dashboard. Set `DASHBOARD_THEME=dark` to go back. This does not require any changes to the Ubuntu Server's agent or NAS configuration.
+
+For one-off previews, override `.env` with:
+
+```bash
+bash python-display/start-native.sh --windowed --theme xp
+```
+
+The fake-data preview can use `python3 python-display/simulate.py --theme xp` without installing the monitoring dependencies. Details: [Theme selection and XP interactions](../docs/THEMES.md).
+
 ## Cross-platform fake-data simulator (v1.1.1)
 
 To preview the **same native Tkinter interface** on macOS, Windows or Linux without a Pi, server, credentials or `.env`, run the new simulator from a complete NodeWatch checkout:
