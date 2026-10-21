@@ -85,3 +85,10 @@ def auto_rotate_due(settings, elapsed_seconds):
     except (ValueError, TypeError):
         seconds = 12
     return elapsed_seconds >= seconds
+
+
+def normalize_theme(value):
+    """Select an explicitly opt-in visual theme; unknown values stay dark."""
+    return "xp" if isinstance(value, str) and value.strip().lower() in (
+        "xp", "windows-xp", "luna"
+    ) else "dark"
