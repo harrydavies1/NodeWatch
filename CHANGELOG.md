@@ -6,10 +6,13 @@ Notable changes to NodeWatch. Versions follow GitHub release tags.
 
 ### Added
 
-- **Optional Windows XP-inspired Luna theme** for the existing NodeWatch Tkinter dashboard, with original vector-drawn bright blue window chrome, green Start button, vintage taskbar and clock, raised panels, segmented progress bars and a working Start-page menu.
+- **Optional Windows XP-inspired Luna theme** for the existing NodeWatch Tkinter dashboard, with original vector-drawn bright blue window chrome, taskbar and clock, raised panels and segmented progress bars.
 - `DASHBOARD_THEME=xp` selects the retro look on the **Raspberry Pi or desktop displaying NodeWatch**; the original dark theme remains the default (`DASHBOARD_THEME=dark`). The Ubuntu telemetry agent and data protocol are unchanged.
 - Live GUI preview override `--theme xp` and simulator preview `python3 python-display/simulate.py --theme xp`, both supporting 2–4 pages.
-- Added theme selection, usage documentation and headless regression tests for page rendering and menu content.
+- Removed the initial green Start button and Start pop-up menu by request; the XP taskbar now uses the freed width to show the current page. Touchscreen taps, keyboard navigation and optional auto-rotation still work.
+- Adjusted XP fonts approximately 10% smaller across the interface, reduced crowded page-one stat values, aligned labels above the progress bars, and removed the unused "Read-only disk temperatures" footer from the HDD page.
+- Added real-screenshot troubleshooting to [themes documentation](docs/THEMES.md), covering cramped numbers, unwanted footer text and updating/restarting the Mac/Pi display to apply visual changes.
+- Added theme selection, usage documentation and headless regression tests for page rendering, uncluttered overview metrics and removed UI elements.
 
 No new stable release has been tagged for this unreleased feature.
 
