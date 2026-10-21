@@ -67,7 +67,7 @@ class XPThemeTests(unittest.TestCase):
                 joined = " ".join(canvas.texts())
                 self.assertIn(heading, joined)
                 self.assertIn("SIMULATION / FAKE DATA", joined)
-                self.assertIn("start", canvas.texts())
+                self.assertNotIn("start", canvas.texts())
                 self.assertGreater(len(canvas.calls), 40)
 
     def test_two_page_pi_mode_and_three_page_server_mode(self):
@@ -82,14 +82,35 @@ class XPThemeTests(unittest.TestCase):
         draw_xp(nas_canvas, three, 2)
         self.assertIn("NAS Storage", nas_canvas.texts())
 
-    def test_start_menu_lists_available_pages(self):
+    def test_no_start_button_or_hdd_footer(self):
         state = simulated_state(pages=4)
+        for page in range(4):
+            with self.subTest(page=page):
+                canvas = DummyCanvas()
+                draw_xp(canvas, state, page)
+                visible = " ".join(canvas.texts()).lower()
+                self.assertNotIn("start", visible)
+                self.assertNotIn("read-only disk temperatures", visible)
+                self.assertIn("nodewatch", visible)
+
+    def test_overview_stat_fonts_have_room_above_progress_bars(self):
         canvas = DummyCanvas()
-        draw_xp(canvas, state, 0, menu_open=True)
-        labels = canvas.texts()
-        self.assertIn("PAGES", labels)
-        self.assertIn("NAS Storage", labels)
-        self.assertIn("HDD Temperatures", labels)
+        state = simulated_state(pages=4)
+        draw_xp(canvas, state, 0, width=480, height=320)
+        percent_calls = [
+            call for call in canvas.calls if call[0] == "text"
+            and call[2]["text"].endswith("%")
+        ]
+        self.assertEqual(len(percent_calls), 3)
+        # Scaled down from 20pt to 16pt plus the 0.9 global adjustment.
+        self.assertTrue(all(call[2]["font"][1] <= 14 for call in percent_calls))
+        self.assertEqual(sorted(int(call[1][1]) for call in percent_calls),
+                         [138, 138, 212])
+        page_title = [
+            call for call in canvas.calls if call[0] == "text"
+            and call[2]["text"] == "System Overview"
+        ][0]
+        self.assertLessEqual(page_title[2]["font"][1], 13)
 
     def test_unavailable_and_offline_metrics_are_safe(self):
         state = simulated_state(pages=4)
