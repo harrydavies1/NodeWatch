@@ -5,7 +5,7 @@ NodeWatch includes two visual themes for its **native Python/Tkinter interface**
 | Theme | Appearance | Default? |
 | --- | --- | --- |
 | `dark` | The existing blue-black NodeWatch interface | **Yes** |
-| `xp` | Bright Windows XP Luna-inspired blue window, green Start control, blue taskbar, classic panels and chunky blue progress bars | No, opt in |
+| `xp` | Bright Windows XP Luna-inspired blue window, classic taskbar and clock, raised panels and chunky blue progress bars (no Start button) | No, opt in |
 
 The Windows XP mode is intentionally **very old-school** while keeping all current NodeWatch functionality: system overview, network and services, NAS storage and HDD temperatures. It draws original vector artwork in Tkinter. No licensed Windows wallpaper, Microsoft branding assets, custom fonts, browser or additional dependencies are needed.
 
@@ -83,16 +83,27 @@ Windows users can replace `python3` with `py`. See [Simulator Setup](SIMULATOR.m
 
 ## Interacting with the old-school theme
 
-- **Green Start button:** opens a working Start-style menu containing the available NodeWatch pages. Select a page by clicking or tapping its entry.
 - **Window controls:** minimise, toggle fullscreen or close NodeWatch, using the three small controls at the top-right of the XP-style window.
-- **Tap left/right:** outside those controls, tap the left or right half of the screen to change pages (identical to the dark theme).
+- **Tap left/right:** tap the left or right half of the screen to change pages (identical to the dark theme); the Start button and its page-selection menu are no longer shown.
 - **Keyboard:** Left/Right arrows or Space navigate; Escape closes the dashboard.
 - **Automatic page cycling:** unchanged. Set `AUTO_ROTATE_PAGES=true` and `ROTATE_SECONDS=12` in the Pi/desktop `.env`, or set `AUTO_ROTATE_PAGES=false` to stop automatic changes. The simulator uses `--auto-rotate` instead.
-- **System tray:** bottom-right displays the clock and the current page number. The taskbar highlights the current dashboard page.
+- **System tray:** bottom-right displays the clock and the current page number. The blue taskbar shows the dashboard page across the available width, without a Start button.
 
 This is an **XP-inspired skin**, not a copy of Windows XP, a Windows virtual machine, or a desktop operating system. The original NodeWatch fonts may fall back to your platform's available Tahoma-like font; exact rendering can vary slightly by operating system and SPI display driver.
 
 ## Troubleshooting
+
+### XP layout tuning from real 480×320 screenshots
+
+During the Mac simulator and Pi-sized preview, the XP screen showed these issues:
+
+1. **Page 1 was cramped:** large CPU/RAM/disk percentages and the CPU temperature nearly touched or overlapped their segmented progress bars. The overview values were reduced from 20/19 to 16, sublabels were made slightly smaller, and their positions adjusted. A subtle 10% font scale adjustment keeps the layout proportionate at different window sizes.
+2. **Page 4 had unwanted footer text:** the "Read-only disk temperatures - refresh every 60 seconds" line crowded the lower edge. The text has been removed entirely; the temperature cards and warning states are unchanged.
+3. **Green Start button used too much space:** the Start control and pop-up page menu were removed. The taskbar now uses the freed width for the current page name. Left/right touchscreen taps, keyboard controls and optional automatic page rotation still work.
+
+**To get the changes on your Mac or Raspberry Pi**, open the existing NodeWatch checkout on that display device (do not clone over it), run `git pull --ff-only`, and **restart the Tkinter app**. On Mac, test using `python3 python-display/simulate.py --theme xp`. On Pi, rebooting after updating is one way to restart an automatically launched dashboard.
+
+If text still looks unchanged after pulling, verify which directory your launcher is using and that the running app was restarted. The `DASHBOARD_THEME=xp` setting is local to the display device. No Ubuntu agent restart, SMART reconfiguration, Samba change, Tailscale change or NAS maintenance is needed for these visual-only fixes.
 
 | Issue | Fix |
 | --- | --- |
@@ -101,6 +112,7 @@ This is an **XP-inspired skin**, not a copy of Windows XP, a Windows virtual mac
 | The Ubuntu agent was updated but nothing happened | Update the Pi/Mac **display checkout** instead. The agent doesn't draw the GUI and doesn't select the theme. |
 | No fourth page | The optional NAS and HDD pages still require the Ubuntu Server to send configured data. See [HDD temperature troubleshooting](HDD_TEMPERATURES.md). |
 | No Tkinter window on desktop | Run `python3 -m tkinter` to test your Python GUI environment and make sure you have an active graphical desktop. |
-| Text or fonts differ slightly | Tkinter uses locally available system fonts. The design is optimized for the 480×320 Pi display, but font rasterisation varies by platform. |
+| Text or fonts differ slightly | Tkinter uses locally available system fonts. The design is optimized for the 480×320 Pi display, but font rasterisation varies by platform. The updated XP font sizing reduces clipped text. |
+| Green Start button or old HDD footer still visible | Pull the latest commit in the checkout used by your display and fully restart NodeWatch; those elements have been removed from the XP renderer. |
 
 **Safe upgrade:** this visual option doesn't modify NAS storage, Samba, SMART readings, the Minecraft server, Tailscale or your Ubuntu systemd services.
