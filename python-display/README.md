@@ -53,7 +53,7 @@ Tkinter requires a functioning X11 or other Tk-compatible graphical session and 
 
 ## Choose the visual theme (dark or XP)
 
-The familiar **dark** style remains the default. The optional **Windows XP-inspired** style recreates Luna-era blue window chrome, a green Start button, a blue taskbar and system tray, raised panels and retro blue progress bars. The **Start** button opens a working page launcher; the other controls and navigation continue to work.
+The familiar **dark** style remains the default. The optional **Windows XP-inspired** style recreates Luna-era blue window chrome, a full-width blue taskbar and system tray, raised panels and retro blue progress bars. The Start button and pop-up menu have been removed to give more room to the dashboard. Tap left/right or use arrow keys to switch pages. The 480×320 layout has smaller overview statistics to avoid progress-bar overlap, and the HDD-temperature footer has been removed.
 
 To enable it, edit `.env` on the **machine displaying NodeWatch** (Raspberry Pi or desktop Mac/Linux):
 
