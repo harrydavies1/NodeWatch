@@ -40,18 +40,18 @@ def _blend(start, end, fraction):
     return "#" + "".join(f"{round(x + (y - x) * fraction):02X}" for x, y in zip(a, b))
 
 
-def draw_xp(canvas, state, page, width=480, height=320, simulation=False,
-            menu_open=False):
-    """Draw a 480x320-friendly Luna-style window, taskbar and NodeWatch pages.
+def draw_xp(canvas, state, page, width=480, height=320, simulation=False):
+    """Draw a 480x320-friendly Luna-style window and NodeWatch pages.
 
-    The menu is decorative until Dashboard.tap() handles its hitboxes.
     Rendering accepts a minimal Tkinter-canvas-compatible object for testing.
+    Page navigation uses the usual touch areas and keyboard controls.
     """
     state = state or {}
     width = max(1, width)
     height = max(1, height)
     sx, sy = width / 480, height / 320
-    scale = max(0.75, min(sx, sy))
+    # A subtle 10% reduction leaves comfortable room for Tk fonts on the Pi.
+    scale = max(0.68, min(sx, sy) * 0.90)
     page_count = page_count_for_state(state)
     server = state.get("server") or {}
     stats = server.get("stats") or {}
@@ -108,7 +108,7 @@ def draw_xp(canvas, state, page, width=480, height=320, simulation=False,
             gradient(x1 + 4, y1 + 4, x2 - 4, y1 + 24,
                      "#E9F5FF", "#D3E7FD", steps=7)
             line(x1 + 4, y1 + 24, x2 - 4, y1 + 24, "#AAC8E6")
-            text(x1 + 11, y1 + 7, caption, 10, BLUE_TEXT, True)
+            text(x1 + 11, y1 + 8, caption, 9, BLUE_TEXT, True)
 
     def bar(x, y, bar_width, percent, warning=False):
         rect(x, y, x + bar_width, y + 12, WHITE, "#7197BE")
@@ -171,10 +171,10 @@ def draw_xp(canvas, state, page, width=480, height=320, simulation=False,
     # Content area, a light XP Explorer-style workspace.
     rect(9, 61, 471, 282, "#D8E9FB")
     gradient(10, 61, 470, 101, "#FFFFFF", "#C9DFF7", steps=12)
-    text(19, 68, page_names[page], 17, BLUE_TEXT, True)
-    text(20, 89, safe_text(server.get("name") or "NodeWatch", 44),
-         9, MUTED)
-    text(459, 89, status, 10, state_color(status), True, anchor="ne")
+    text(19, 69, page_names[page], 15, BLUE_TEXT, True)
+    text(20, 90, safe_text(server.get("name") or "NodeWatch", 44),
+         8, MUTED)
+    text(459, 90, status, 9, state_color(status), True, anchor="ne")
     line(14, 101, 466, 101, "#83ABDB")
 
     if not state:
@@ -183,29 +183,29 @@ def draw_xp(canvas, state, page, width=480, height=320, simulation=False,
              anchor="center")
     elif page == 0:
         box(16, 110, 235, 177, "CPU USAGE")
-        text(27, 138, readable_percent(stats.get("cpu_percent")), 20, BLUE_TEXT, True)
-        text(125, 145, f'{stats.get("cpu_cores", "--")} cores', 10, MUTED)
+        text(27, 138, readable_percent(stats.get("cpu_percent")), 16, BLUE_TEXT, True)
+        text(124, 144, f'{stats.get("cpu_cores", "--")} cores', 9, MUTED)
         bar(27, 160, 196, stats.get("cpu_percent"))
 
         box(245, 110, 464, 177, "MEMORY")
-        text(256, 138, readable_percent(stats.get("memory_percent")), 20, BLUE_TEXT, True)
-        text(353, 145, readable_size(stats.get("memory_total")), 10, MUTED)
+        text(256, 138, readable_percent(stats.get("memory_percent")), 16, BLUE_TEXT, True)
+        text(353, 144, readable_size(stats.get("memory_total")), 9, MUTED)
         bar(256, 160, 196, stats.get("memory_percent"))
 
         box(16, 184, 235, 251, "SYSTEM DISK")
-        text(27, 211, readable_percent(stats.get("disk_percent")), 20, BLUE_TEXT, True)
-        text(125, 219, readable_size(stats.get("disk_total")), 10, MUTED)
+        text(27, 212, readable_percent(stats.get("disk_percent")), 16, BLUE_TEXT, True)
+        text(124, 218, readable_size(stats.get("disk_total")), 9, MUTED)
         bar(27, 234, 196, stats.get("disk_percent"))
 
         box(245, 184, 464, 251, "TEMPERATURE")
         temp = stats.get("temperature_c")
         if isinstance(temp, (int, float)) and not isinstance(temp, bool):
-            text(257, 212, f"{temp:.1f}°C", 19, BLUE_TEXT, True)
+            text(257, 211, f"{temp:.1f}°C", 16, BLUE_TEXT, True)
         else:
-            text(257, 212, "Unavailable", 14, MUTED, True)
-        text(259, 235, "Up " + readable_uptime(stats.get("uptime_seconds")), 9, MUTED)
+            text(257, 211, "Unavailable", 12, MUTED, True)
+        text(259, 233, "Up " + readable_uptime(stats.get("uptime_seconds")), 8, MUTED)
         text(20, 261, "Computer status:", 9, MUTED)
-        text(110, 261, "Connected" if is_online else "Server offline",
+        text(122, 261, "Connected" if is_online else "Server offline",
              9, GREEN if is_online else RED, True)
 
     elif page == 1:
@@ -262,7 +262,7 @@ def draw_xp(canvas, state, page, width=480, height=320, simulation=False,
             if good:
                 label = "HOT" if temp >= 50 else "WARM" if temp >= 45 else "NORMAL"
                 colour = RED if temp >= 50 else AMBER if temp >= 45 else GREEN
-                text(449, y + 9, f"{temp:.1f}°C", 20, colour, True, anchor="ne")
+                text(449, y + 9, f"{temp:.1f}°C", 18, colour, True, anchor="ne")
                 text(28, y + 53, label + "  -  SMART temperature",
                      10, colour, True)
                 bar(281, y + 56, 168,
@@ -273,36 +273,13 @@ def draw_xp(canvas, state, page, width=480, height=320, simulation=False,
                         "INVALID CONFIG" if drive.get("status") == "invalid" else \
                         "TEMPERATURE UNAVAILABLE"
                 text(28, y + 51, label, 10, AMBER if label == "DRIVE SLEEPING" else RED, True)
-        text(23, 263, "Read-only disk temperatures - refresh every 60 seconds",
-             9, MUTED)
-
-    # Windows XP signature bottom taskbar, Start button and system tray.
+    # Simple XP-style taskbar (without a Start button or pop-up menu).
+    # The existing left/right touch and keyboard controls switch pages.
     gradient(0, 286, 480, 320, "#438FED", "#1452CA", steps=15)
     line(0, 287, 480, 287, "#A6D8FF", 2)
-    oval(-26, 287, 113, 327, "#1C7227", "#74C777")
-    oval(-26, 288, 107, 323, "#319C39", "#74C777")
-    polygon([17, 298, 24, 294, 31, 299, 23, 306], "#FFFFFF")
-    text(40, 294, "start", 17, WHITE, True, italic=True)
-    rect(117, 293, 368, 316, "#1D58B7", "#74B5FA")
-    text(128, 297, "NodeWatch  -  " + page_names[page], 10, WHITE, True)
+    rect(12, 293, 370, 316, "#1D58B7", "#74B5FA")
+    text(23, 298, "NodeWatch  -  " + page_names[page], 9, WHITE, True)
     gradient(379, 288, 480, 319, "#61BDF5", "#2681DA", steps=9)
     line(379, 290, 379, 319, "#AFDFFF")
-    text(386, 298, f"{page + 1}/{page_count}", 9, WHITE, True)
-    text(468, 298, datetime.now().strftime("%H:%M"), 10, WHITE, True, anchor="ne")
-
-    if menu_open:
-        # Clickable Start-style page launcher (Dashboard.tap handles hit testing).
-        entries = page_names[:4]
-        rect(7, 130, 229, 287, "#EDF4FF", BLUE_DARK, 2)
-        gradient(9, 133, 227, 157, "#4F9BFF", "#0E4BB4", steps=8)
-        text(21, 138, "NodeWatch", 13, WHITE, True)
-        text(216, 142, "PAGES", 9, WHITE, anchor="ne")
-        for i, name in enumerate(entries):
-            y = 159 + i * 29
-            if y + 26 > 285:
-                break
-            rect(11, y, 225, y + 26,
-                 "#DCEBFF" if i == page else "#F7FAFF",
-                 "#AFC7E9")
-            oval(18, y + 6, 31, y + 19, BLUE if i != page else GREEN)
-            text(39, y + 5, name, 10, BLUE_TEXT, i == page)
+    text(386, 299, f"{page + 1}/{page_count}", 8, WHITE, True)
+    text(468, 299, datetime.now().strftime("%H:%M"), 9, WHITE, True, anchor="ne")
