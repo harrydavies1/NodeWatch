@@ -167,6 +167,10 @@ def build_parser():
         "--fullscreen", action="store_true",
         help="use fullscreen instead of the default 480x320 preview window",
     )
+    parser.add_argument(
+        "--theme", choices=("dark", "xp"), default="dark",
+        help="preview the classic dark UI or optional Windows XP Luna theme",
+    )
     return parser
 
 
@@ -193,6 +197,7 @@ def main(argv=None):
             windowed=not args.fullscreen,
             collector=get_fake_data,
             simulation=True,
+            theme=args.theme,
         ).run()
     except tk.TclError as exc:
         raise SystemExit(
