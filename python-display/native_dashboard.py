@@ -7,6 +7,7 @@ Reads the Pi's .env and optional read-only remote metrics agent.
 """
 
 import argparse
+import os
 import queue
 import sys
 import threading
@@ -30,6 +31,7 @@ from ui_helpers import (  # noqa: E402
     readable_uptime,
     nas_volumes_for_state,
     hdd_temperatures_for_state,
+    normalize_theme,
     page_count_for_state,
     safe_text,
     status_label,
@@ -47,17 +49,23 @@ AMBER = "#FFD084"
 
 
 class Dashboard:
-    def __init__(self, windowed=False, collector=None, simulation=False):
+    def __init__(self, windowed=False, collector=None, simulation=False, theme=None):
         if collector is None:
             # Real Pi / Server Mode still reads the regular .env and metrics.
             from dashboard import collect_state
             collector = collect_state
         self.collector = collector
         self.simulation = simulation
+        # dashboard.collect_state loads the local .env for normal live mode.
+        # Simulator mode passes an explicit theme and needs no third-party libs.
+        self.theme = normalize_theme(
+            os.environ.get("DASHBOARD_THEME", "dark") if theme is None else theme
+        )
+        self.start_menu_open = False
         self.root = tk.Tk()
         self.root.title("NodeWatch - Simulator (fake data)" if simulation
                         else "NodeWatch - Native Pi Display")
-        self.root.configure(bg=BG)
+        self.root.configure(bg="#226BCE" if self.theme == "xp" else BG)
         self.root.attributes("-fullscreen", not windowed)
         if windowed:
             self.root.geometry("480x320")
@@ -67,7 +75,9 @@ class Dashboard:
         self.root.bind("<space>", lambda _: self.change_page(1))
         self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
 
-        self.canvas = tk.Canvas(self.root, bg=BG, highlightthickness=0, bd=0)
+        self.canvas = tk.Canvas(self.root,
+                                bg="#226BCE" if self.theme == "xp" else BG,
+                                highlightthickness=0, bd=0)
         self.canvas.pack(fill="both", expand=True)
         self.canvas.bind("<Configure>", lambda _: self.draw())
         self.canvas.bind("<Button-1>", self.tap)
@@ -130,9 +140,37 @@ class Dashboard:
     def change_page(self, direction):
         self.page = (self.page + direction) % page_count_for_state(self.state)
         self.last_change = time.monotonic()
+        self.start_menu_open = False
         self.draw()
 
     def tap(self, event):
+        if self.theme == "xp":
+            # Hit boxes are expressed in virtual 480x320 canvas coordinates.
+            x = event.x * 480 / max(1, self.canvas.winfo_width())
+            y = event.y * 320 / max(1, self.canvas.winfo_height())
+            if self.start_menu_open:
+                if 11 <= x <= 225 and 159 <= y < 159 + 29 * page_count_for_state(self.state):
+                    chosen = int((y - 159) // 29)
+                    self.page = min(chosen, page_count_for_state(self.state) - 1)
+                    self.last_change = time.monotonic()
+                self.start_menu_open = False
+                self.draw()
+                return
+            if y >= 287 and x <= 113:
+                self.start_menu_open = True
+                self.last_change = time.monotonic()
+                self.draw()
+                return
+            if 12 <= y <= 34 and x >= 444:
+                self.root.destroy()
+                return
+            if 12 <= y <= 34 and 421 <= x < 444:
+                self.root.attributes("-fullscreen",
+                                     not self.root.attributes("-fullscreen"))
+                return
+            if 12 <= y <= 34 and 400 <= x < 421:
+                self.root.iconify()
+                return
         if event.x < self.canvas.winfo_width() / 2:
             self.change_page(-1)
         else:
@@ -145,6 +183,11 @@ class Dashboard:
         height = max(c.winfo_height(), 320)
         sx, sy = width / 480, height / 320
         fs = max(0.75, min(sx, sy))
+        if self.theme == "xp":
+            from xp_theme import draw_xp
+            draw_xp(c, self.state, self.page, width, height,
+                    simulation=self.simulation, menu_open=self.start_menu_open)
+            return
 
         def panel(x1, y1, x2, y2):
             c.create_rectangle(x1 * sx, y1 * sy, x2 * sx, y2 * sy,
@@ -344,9 +387,11 @@ class Dashboard:
 def main():
     parser = argparse.ArgumentParser(description="NodeWatch native dashboard: no browser required")
     parser.add_argument("--windowed", action="store_true", help="480x320 preview instead of fullscreen")
+    parser.add_argument("--theme", choices=("dark", "xp"), default=None,
+                        help="override DASHBOARD_THEME from .env (default: dark)")
     args = parser.parse_args()
     try:
-        Dashboard(windowed=args.windowed).run()
+        Dashboard(windowed=args.windowed, theme=args.theme).run()
     except tk.TclError as exc:
         raise SystemExit(f"Unable to open a graphical display: {exc}. Check your desktop session and SPI driver.") from exc
 
