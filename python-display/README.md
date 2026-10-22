@@ -71,7 +71,7 @@ bash python-display/start-native.sh --windowed --theme xp
 
 The fake-data preview can use `python3 python-display/simulate.py --theme xp` without installing the monitoring dependencies. Details: [Theme selection and XP interactions](../docs/THEMES.md).
 
-## Cross-platform fake-data simulator (v1.1.1)
+## Cross-platform fake-data simulator (introduced in v1.2.0)
 
 To preview the **same native Tkinter interface** on macOS, Windows or Linux without a Pi, server, credentials or `.env`, run the new simulator from a complete NodeWatch checkout:
 
