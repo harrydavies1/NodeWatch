@@ -1,6 +1,6 @@
 # NodeWatch — Raspberry Pi monitoring dashboard
 
-**Latest stable release: [v1.1.1](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.1)** · [Changelog](CHANGELOG.md) · [What's new since v1.1.0](releases/v1.1.1.md)
+**Latest stable release: [v1.2.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.2.0)** · [Changelog](CHANGELOG.md) · [What's new since v1.1.0](releases/v1.2.0.md)
 
 **NodeWatch is a native Python/Tkinter dashboard for a Raspberry Pi**, designed for a small display such as a 480×320 SPI screen. It shows two live telemetry pages, an optional third NAS storage page, and an optional **fourth HDD temperature page**. It **does not need a web browser**. Automatic page rotation is optional.
 
@@ -9,7 +9,7 @@
 - **Raspberry Pi display:** Raspberry Pi 3 Model B (Pi 3B) with a **3.5-inch OSOYOO SPI RPi Display V1.0**.
 - **Server hardware:** A basic **Dell OptiPlex** desktop running **Ubuntu Server**.
 
-**Testing status:** Pi Mode, the native 3.5-inch Tkinter display and end-to-end Server Mode with Ubuntu Server on a Dell OptiPlex have been tested on real hardware. The Ubuntu agent and NAS drive paths have also been tested on the OptiPlex. The HDD-temperature fourth page was confirmed working on the Raspberry Pi after deployment troubleshooting. NAS storage and HDD temperature functionality have automated tests; compatibility with every SPI display, drive and operating-system configuration is not guaranteed.
+**Testing status:** Pi Mode, the native 3.5-inch Tkinter display and end-to-end Server Mode with Ubuntu Server on a Dell OptiPlex have been tested on real hardware. The optional Windows XP theme was also confirmed working with live server stats on the Raspberry Pi display on 22 October 2026. The Ubuntu agent and NAS drive paths have also been tested on the OptiPlex. The HDD-temperature fourth page was confirmed working on the Raspberry Pi after deployment troubleshooting. NAS storage and HDD temperature functionality have automated tests; compatibility with every SPI display, drive and operating-system configuration is not guaranteed.
 
 There are **two monitoring modes**. The same Tkinter dashboard works in either one; both have now been tested with the Pi and OptiPlex. Dual-NAS monitoring is opt-in and covered by automated tests.
 
@@ -49,7 +49,7 @@ The XP layout has also been tuned for the **480×320 screen**: slightly smaller 
 
 [Complete theme setup, layout troubleshooting and navigation guide →](docs/THEMES.md)
 
-## Preview NodeWatch on a Mac, Windows or Linux computer (v1.1.1)
+## Preview NodeWatch on a Mac, Windows or Linux computer
 
 Want to try the Raspberry Pi dashboard without owning the display or configuring a server? The **cross-platform GUI simulator** reuses NodeWatch's *real Tkinter interface* with clearly labelled, changing **fake data**. You can preview all four pages, click to navigate, enable timed rotation, and resize the 480×320 preview window. No `.env`, server, SSH, SMART access, network access or pip packages are required **for the simulator**.
 
