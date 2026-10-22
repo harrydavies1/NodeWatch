@@ -4,19 +4,33 @@ Notable changes to NodeWatch. Versions follow GitHub release tags.
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [v1.2.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.2.0) — 2026-10-22
+
+**Windows XP Luna-inspired theme + desktop simulator** — first stable GitHub release after v1.1.0. The earlier v1.1.1 simulator notes existed in the repository but v1.1.1 was never published as a GitHub Release; v1.2.0 includes those changes.
+
 ### Added
 
-- **Optional Windows XP-inspired Luna theme** for the existing NodeWatch Tkinter dashboard, with original vector-drawn bright blue window chrome, taskbar and clock, raised panels and segmented progress bars.
-- `DASHBOARD_THEME=xp` selects the retro look on the **Raspberry Pi or desktop displaying NodeWatch**; the original dark theme remains the default (`DASHBOARD_THEME=dark`). The Ubuntu telemetry agent and data protocol are unchanged.
-- Live GUI preview override `--theme xp` and simulator preview `python3 python-display/simulate.py --theme xp`, both supporting 2–4 pages.
-- Removed the initial green Start button and Start pop-up menu by request; the XP taskbar now uses the freed width to show the current page. Touchscreen taps, keyboard navigation and optional auto-rotation still work.
-- Adjusted XP fonts approximately 10% smaller across the interface, reduced crowded page-one stat values, aligned labels above the progress bars, and removed the unused "Read-only disk temperatures" footer from the HDD page.
-- Added real-screenshot troubleshooting to [themes documentation](docs/THEMES.md), covering cramped numbers, unwanted footer text and updating/restarting the Mac/Pi display to apply visual changes.
-- Added theme selection, usage documentation and headless regression tests for page rendering, uncluttered overview metrics and removed UI elements.
+- **Optional Windows XP-style theme:** `DASHBOARD_THEME=xp` or live app `--theme xp`, with bright blue title bar, blue taskbar and clock, pale bevelled panels and segmented progress bars drawn natively with Tkinter. The original `dark` theme stays the default.
+- **Same four monitoring pages in either theme:** live system metrics, network/services, NAS volumes and SMART HDD temperatures when configured. No change to the authenticated Ubuntu telemetry agent API or NAS/SMART setup.
+- **Offline desktop simulator** for macOS, Windows and desktop Linux (Python 3 + Tkinter): `python3 python-display/simulate.py --theme xp` or default dark. It uses clearly marked fake data and the real GUI renderer, with 2–4 pages, manual navigation and optional automatic rotation.
+- **Theme configuration and troubleshooting documentation** covering Raspberry Pi startup, switching themes, remote token errors, and Git pull conflicts.
 
-No new stable release has been tagged for this unreleased feature.
+### Improved and verified
 
-## [v1.1.1](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.1) — 2026-10-19
+- Refined XP fonts and stat positions using real 480×320 screenshots; reduced crowded CPU/RAM/disk/temperature labels and removed the redundant HDD temperatures footer.
+- Removed the initial XP Start button and popup menu; retained existing left/right touch navigation, keys, and configurable page rotation. XP taskbar now spans the freed width.
+- **Confirmed working on Raspberry Pi 3B + 3.5-inch OSOYOO SPI display on 22 October 2026** with live Dell Ubuntu Server monitoring; also tested real remote metrics from Mac.
+- **59 automated tests passed** on GitHub Actions before publication, including theme/simulator regressions, agent integration, Python syntax and shell syntax.
+
+### Upgrade
+
+On the Pi (or Mac desktop running the GUI), `git pull --ff-only` in the existing checkout, set `DASHBOARD_THEME=xp` in that **display device's** `.env`, and restart the graphical app. Keep the existing server URL/token; **do not** modify Ubuntu's `AGENT_TOKEN` or NAS settings. Existing desktop autostart loads the selected theme at login. Dark remains the default when the setting is missing.
+
+**Full release notes:** [v1.2.0](releases/v1.2.0.md) · **Changes since last published release:** [v1.1.0...v1.2.0](https://github.com/harrydavies1/NodeWatch/compare/v1.1.0...v1.2.0)
+
+## v1.1.1 — 2026-10-19 (unpublished simulator milestone; included in v1.2.0)
 
 **Small patch release:** adds an optional **cross-platform Python/Tkinter simulator** without changing the existing v1.1.0 agent protocol, NAS storage, HDD SMART monitoring or Pi display behaviour.
 
@@ -27,7 +41,7 @@ No new stable release has been tagged for this unreleased feature.
 - Added [Mac/Windows/Linux setup and troubleshooting](docs/SIMULATOR.md), README guidance and regression tests for simulated state, page selection, options and zero-third-party-dependency help.
 - This does **not** replace or alter live monitoring, disk configuration, SMART data, Tailscale, Samba or Minecraft.
 
-**Full changes:** [v1.1.0...v1.1.1](https://github.com/harrydavies1/NodeWatch/compare/v1.1.0...v1.1.1)
+**These changes shipped in:** [v1.2.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.2.0).
 
 ## [v1.1.0](https://github.com/harrydavies1/NodeWatch/releases/tag/v1.1.0) — 2026-10-18
 
